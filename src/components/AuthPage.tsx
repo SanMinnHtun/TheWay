@@ -166,7 +166,7 @@ export default function AuthPage() {
           <div className="w-full rounded-[19px] border border-white/60 bg-gradient-to-br from-[#1e2532]/90 to-[#0e1622]/80 p-6 text-center shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
             <p className="mb-5 text-[13px] font-medium tracking-[0.2em] text-[#beb8ff]">{copy.eyebrow}</p>
 
-            <h1 className="mx-auto text-[31px] font-extrabold leading-tight tracking-0 text-[#f7f6ff] sm:text-[40px]">
+            <h1 className="mx-auto text-[31px] font-extrabold leading-tight tracking-normal text-[#f7f6ff] sm:text-[40px]">
               {copy.heading}
             </h1>
 
