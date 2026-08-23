@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
-
-type GoalType = "exploring" | "goal";
+import { saveAssessmentTrack } from "./services/assessmentTrack";
+import type { AssessmentTrack } from "./types/onboarding";
 
 interface Option {
   title: string;
   body: string;
   items: string[];
   action: string;
-  goalType: GoalType;
+  assessmentTrack: AssessmentTrack;
 }
 
 interface InfoCardContent {
@@ -27,7 +27,7 @@ const options: Option[] = [
       "See what skills and projects to focus on"
     ],
     action: "Start Exploring",
-    goalType: "exploring"
+    assessmentTrack: "exploring"
   },
   {
     title: "I Know My Goal",
@@ -38,7 +38,7 @@ const options: Option[] = [
       "See what skills and projects to focus on"
     ],
     action: "Build My Roadmap",
-    goalType: "goal"
+    assessmentTrack: "goal-focused"
   }
 ];
 
@@ -77,6 +77,11 @@ function CheckIcon() {
 function OptionCard({ option }: { option: Option }) {
   const navigate = useNavigate();
 
+  const handleChooseTrack = () => {
+    saveAssessmentTrack(option.assessmentTrack);
+    navigate("/auth", { state: { assessmentTrack: option.assessmentTrack } });
+  };
+
   return (
     <section className="choice-card">
       <h2>{option.title}</h2>
@@ -91,7 +96,7 @@ function OptionCard({ option }: { option: Option }) {
       </ul>
       <button
         type="button"
-        onClick={() => navigate("/profile-setup", { state: { initialGoalType: option.goalType } })}
+        onClick={handleChooseTrack}
       >
         {option.action} <span>→</span>
       </button>
