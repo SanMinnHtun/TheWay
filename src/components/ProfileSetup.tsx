@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import spaceBg from "../assets/bg.png";
 import astronautImg from "../assets/astronaut.png";
 
@@ -23,12 +23,29 @@ const inputClass =
 
 const labelClass = "mb-2 block text-sm font-medium text-slate-200";
 
+type AssessmentTrack = "exploring" | "goal";
+
+interface ProfileSetupLocationState {
+  initialGoalType?: AssessmentTrack;
+}
+
+interface ProfileFormData {
+  name: string;
+  birthMonth: string;
+  birthDate: string;
+  birthYear: string;
+  gender: string;
+  occupation: string;
+  assessmentTrack: AssessmentTrack;
+}
+
 export default function ProfileSetup() {
   const location = useLocation();
-  const initialGoalType = location.state?.initialGoalType;
-  const assessmentTrack = initialGoalType === "goal" ? "goal" : "exploring";
+  const locationState = location.state as ProfileSetupLocationState | null;
+  const assessmentTrack: AssessmentTrack =
+    locationState?.initialGoalType === "goal" ? "goal" : "exploring";
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileFormData>({
     name: "",
     birthMonth: "",
     birthDate: "",
@@ -38,14 +55,17 @@ export default function ProfileSetup() {
     assessmentTrack
   });
 
-  const updateField = (field, value) => {
+  const updateField = <Field extends keyof ProfileFormData,>(
+    field: Field,
+    value: ProfileFormData[Field]
+  ) => {
     setFormData((current) => ({
       ...current,
       [field]: value
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   };
 
@@ -186,7 +206,7 @@ export default function ProfileSetup() {
                     name="assessmentTrack"
                     value="exploring"
                     checked={formData.assessmentTrack === "exploring"}
-                    onChange={(event) => updateField("assessmentTrack", event.target.value)}
+                    onChange={() => updateField("assessmentTrack", "exploring")}
                     className="h-4 w-4 accent-purple-600"
                   />
                   I'm still exploring.
@@ -197,7 +217,7 @@ export default function ProfileSetup() {
                     name="assessmentTrack"
                     value="goal"
                     checked={formData.assessmentTrack === "goal"}
-                    onChange={(event) => updateField("assessmentTrack", event.target.value)}
+                    onChange={() => updateField("assessmentTrack", "goal")}
                     className="h-4 w-4 accent-purple-600"
                   />
                   I know my goal.

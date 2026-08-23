@@ -1,7 +1,23 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const options = [
+type GoalType = "exploring" | "goal";
+
+interface Option {
+  title: string;
+  body: string;
+  items: string[];
+  action: string;
+  goalType: GoalType;
+}
+
+interface InfoCardContent {
+  className: string;
+  title: string;
+  accent: string;
+  text: string;
+}
+
+const options: Option[] = [
   {
     title: "I’m Still Exploring",
     body: "For students who aren’t sure which career path fits them yet",
@@ -26,7 +42,7 @@ const options = [
   }
 ];
 
-const infoCards = [
+const infoCards: InfoCardContent[] = [
   {
     className: "info-one",
     title: "What Is ",
@@ -58,7 +74,7 @@ function CheckIcon() {
   );
 }
 
-function OptionCard({ option }) {
+function OptionCard({ option }: { option: Option }) {
   const navigate = useNavigate();
 
   return (
@@ -83,7 +99,7 @@ function OptionCard({ option }) {
   );
 }
 
-function InfoCard({ card }) {
+function InfoCard({ card }: { card: InfoCardContent }) {
   return (
     <article className={`info-card ${card.className}`}>
       <h3>
