@@ -1,7 +1,11 @@
 import { useLocation } from "react-router-dom";
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import spaceBg from "../assets/bg.png";
 import astronautImg from "../assets/astronaut.png";
+import { useAuthUser } from "../hooks/useAuthUser";
+import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
+import type { AuthUser } from "../services/firebaseAuth";
+import { assessmentTrackLabels, type AssessmentTrack } from "../types/onboarding";
 
 const months = [
   "January",
@@ -23,10 +27,10 @@ const inputClass =
 
 const labelClass = "mb-2 block text-sm font-medium text-slate-200";
 
-type AssessmentTrack = "exploring" | "goal";
-
 interface ProfileSetupLocationState {
-  initialGoalType?: AssessmentTrack;
+  assessmentTrack?: AssessmentTrack;
+  authUser?: AuthUser;
+  initialGoalType?: "exploring" | "goal";
 }
 
 interface ProfileFormData {
@@ -35,23 +39,53 @@ interface ProfileFormData {
   birthDate: string;
   birthYear: string;
   gender: string;
-  occupation: string;
+  currentStatus: string;
   assessmentTrack: AssessmentTrack;
+}
+
+function resolveAssessmentTrack(locationState: ProfileSetupLocationState | null) {
+  if (isAssessmentTrack(locationState?.assessmentTrack)) {
+    return locationState.assessmentTrack;
+  }
+
+  if (locationState?.initialGoalType === "goal") {
+    return "goal-focused";
+  }
+
+  return readAssessmentTrack() ?? "exploring";
+}
+
+function getInitials(name: string, email: string) {
+  const source = name.trim() || email.trim();
+
+  if (!source) {
+    return "TW";
+  }
+
+  return source
+    .split(/\s+|@/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 }
 
 export default function ProfileSetup() {
   const location = useLocation();
   const locationState = location.state as ProfileSetupLocationState | null;
-  const assessmentTrack: AssessmentTrack =
-    locationState?.initialGoalType === "goal" ? "goal" : "exploring";
+  const authUserState = useAuthUser();
+  const routeAuthUser = locationState?.authUser;
+  const currentAuthUser = authUserState.status === "authenticated" ? authUserState.user : null;
+  const authUser = routeAuthUser ?? currentAuthUser;
+  const assessmentTrack = useMemo(() => resolveAssessmentTrack(locationState), [locationState]);
 
   const [formData, setFormData] = useState<ProfileFormData>({
-    name: "",
+    name: authUser?.name ?? "",
     birthMonth: "",
     birthDate: "",
     birthYear: "",
     gender: "female",
-    occupation: "",
+    currentStatus: "",
     assessmentTrack
   });
 
@@ -68,6 +102,25 @@ export default function ProfileSetup() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   };
+
+  useEffect(() => {
+    saveAssessmentTrack(assessmentTrack);
+    setFormData((current) => ({
+      ...current,
+      assessmentTrack
+    }));
+  }, [assessmentTrack]);
+
+  useEffect(() => {
+    if (!authUser?.name) {
+      return;
+    }
+
+    setFormData((current) => ({
+      ...current,
+      name: current.name || authUser.name
+    }));
+  }, [authUser?.name]);
 
   return (
     <main
@@ -97,12 +150,20 @@ export default function ProfileSetup() {
             <h2 className="text-2xl font-semibold text-white">Create your profile</h2>
 
             <div className="mt-6 flex items-center gap-4">
-              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-purple-600 text-sm font-semibold text-white">
-                MW
-              </div>
+              {authUser?.photoURL ? (
+                <img
+                  src={authUser.photoURL}
+                  alt=""
+                  className="h-12 w-12 shrink-0 rounded-full border border-purple-300/40 object-cover"
+                />
+              ) : (
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-purple-600 text-sm font-semibold text-white">
+                  {getInitials(authUser?.name ?? formData.name, authUser?.email ?? "")}
+                </div>
+              )}
               <div>
-                <p className="text-sm font-medium text-white">May Win</p>
-                <p className="text-sm text-slate-400">maywin00@gmail.com</p>
+                <p className="text-sm font-medium text-white">{authUser?.name || "The Way learner"}</p>
+                <p className="text-sm text-slate-400">{authUser?.email || "Signed in with Google"}</p>
               </div>
             </div>
           </div>
@@ -180,50 +241,35 @@ export default function ProfileSetup() {
             </fieldset>
 
             <div>
-              <label className={labelClass} htmlFor="profile-occupation">
-                Occupation
+              <label className={labelClass} htmlFor="profile-current-status">
+                Current Status
               </label>
               <select
-                id="profile-occupation"
-                value={formData.occupation}
-                onChange={(event) => updateField("occupation", event.target.value)}
+                id="profile-current-status"
+                value={formData.currentStatus}
+                onChange={(event) => updateField("currentStatus", event.target.value)}
                 className={inputClass}
               >
-                <option value="">+ occupation</option>
-                <option value="student">Student</option>
-                <option value="designer">Designer</option>
-                <option value="developer">Developer</option>
+                <option value="">Choose your current status</option>
+                <option value="high-school-student">High School Student</option>
+                <option value="university-student">University Student</option>
+                <option value="self-taught-learner">Self-taught Learner</option>
+                <option value="career-switcher">Career Switcher</option>
+                <option value="junior-developer">Junior Developer</option>
+                <option value="software-professional">Software Professional</option>
                 <option value="other">Other</option>
               </select>
             </div>
 
-            <fieldset>
-              <legend className={labelClass}>Assessment Track Choice</legend>
-              <div className="grid gap-3">
-                <label className="flex items-center gap-3 rounded-lg border border-slate-700 bg-[#1c1d30]/80 px-4 py-3 text-sm text-slate-200">
-                  <input
-                    type="radio"
-                    name="assessmentTrack"
-                    value="exploring"
-                    checked={formData.assessmentTrack === "exploring"}
-                    onChange={() => updateField("assessmentTrack", "exploring")}
-                    className="h-4 w-4 accent-purple-600"
-                  />
-                  I'm still exploring.
-                </label>
-                <label className="flex items-center gap-3 rounded-lg border border-slate-700 bg-[#1c1d30]/80 px-4 py-3 text-sm text-slate-200">
-                  <input
-                    type="radio"
-                    name="assessmentTrack"
-                    value="goal"
-                    checked={formData.assessmentTrack === "goal"}
-                    onChange={() => updateField("assessmentTrack", "goal")}
-                    className="h-4 w-4 accent-purple-600"
-                  />
-                  I know my goal.
-                </label>
+            <div>
+              <span className={labelClass}>Selected Path</span>
+              <div className="rounded-lg border border-purple-300/25 bg-purple-500/10 px-4 py-3">
+                <p className="text-sm font-medium text-white">{assessmentTrackLabels[formData.assessmentTrack]}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-400">
+                  This came from your landing page choice and will start the right assessment.
+                </p>
               </div>
-            </fieldset>
+            </div>
 
             <button
               type="submit"
