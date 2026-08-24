@@ -1,42 +1,42 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuthUser } from "../hooks/useAuthUser";
-import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
 import { getAuthErrorMessage, signInWithGoogle } from "../services/firebaseAuth";
+import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
 import { assessmentTrackLabels, type AssessmentTrack } from "../types/onboarding";
+import { useAuthUser } from "../hooks/useAuthUser";
 
 interface AuthLocationState {
   assessmentTrack?: AssessmentTrack;
 }
 
 interface AuthCopy {
-  eyebrow: string;
   heading: string;
   text: string;
+  eyebrow: string;
 }
 
 const authCopyByTrack: Record<AssessmentTrack, AuthCopy> = {
   exploring: {
-    eyebrow: "Career discovery",
     heading: "Discover where you belong in tech",
-    text: "Sign in to start your personalized career discovery."
+    text: "Sign in to start your personalized career discovery assessment.",
+    eyebrow: "CAREER DISCOVERY"
   },
   "goal-focused": {
-    eyebrow: "Roadmap builder",
     heading: "Build your path into tech",
-    text: "Sign in to create a roadmap around your current skills and goals."
+    text: "Sign in to create a roadmap based on your current skills and goals.",
+    eyebrow: "ROADMAP BUILDER"
   }
 };
 
 const neutralCopy: AuthCopy = {
-  eyebrow: "Continue your journey",
   heading: "Welcome to The Way",
-  text: "Sign in to continue your personalized tech career journey."
+  text: "Sign in to continue your personalized tech career journey.",
+  eyebrow: "CONTINUE YOUR JOURNEY"
 };
 
 function GoogleIcon() {
   return (
-    <svg aria-hidden="true" className="oauth-button__google" viewBox="0 0 24 24">
+    <svg aria-hidden="true" className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z"
@@ -58,42 +58,11 @@ function GoogleIcon() {
 }
 
 function Spinner() {
-  return <span aria-hidden="true" className="oauth-button__spinner" />;
-}
-
-function BrandMark() {
   return (
-    <Link to="/" className="tw-brand" aria-label="The Way home">
-      <span className="tw-brand-mark" aria-hidden="true">
-        <span />
-      </span>
-      <span>The Way</span>
-    </Link>
-  );
-}
-
-function MiniNetwork() {
-  return (
-    <svg className="mini-network" viewBox="0 0 680 280" aria-hidden="true">
-      <path d="M70 206 C170 98 280 93 340 142 C410 201 510 190 610 76" />
-      <path d="M118 112 C238 38 416 42 548 151" />
-      <circle cx="70" cy="206" r="7" />
-      <circle cx="340" cy="142" r="8" />
-      <circle cx="610" cy="76" r="7" />
-      <circle cx="548" cy="151" r="5" />
-    </svg>
-  );
-}
-
-function OnboardingProgress() {
-  return (
-    <div className="onboarding-progress" aria-label="Onboarding progress">
-      <span className="is-active">Account</span>
-      <i className="onboarding-progress__line" aria-hidden="true" />
-      <span>Profile</span>
-      <i className="onboarding-progress__line" aria-hidden="true" />
-      <span>Assessment</span>
-    </div>
+    <span
+      aria-hidden="true"
+      className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-slate-400/40 border-t-white"
+    />
   );
 }
 
@@ -172,53 +141,69 @@ export default function AuthPage() {
   const isButtonDisabled = isSigningIn || isAuthLoading;
 
   return (
-    <main className="tw-page auth-shell">
-      <div className="tw-bg" aria-hidden="true">
-        <span className="tw-bg__grid" />
-        <span className="tw-bg__light tw-bg__light--left" />
-        <span className="tw-bg__light tw-bg__light--right" />
-      </div>
-      <MiniNetwork />
+    <main className="min-h-[100dvh] overflow-hidden bg-[#02090f] text-white">
+      <div className="landing-shell flex min-h-[100dvh] flex-col !pb-8 !pt-6 sm:!px-8 sm:!pt-8">
+        <div className="stars-layer" />
+        <div className="glow glow-left" />
+        <div className="glow glow-bottom" />
 
-      <header className="auth-header">
-        <BrandMark />
-        <Link to="/" className="tw-button tw-button--secondary tw-button--small">
-          Back to Home
-        </Link>
-      </header>
-
-      <section className="auth-layout page-enter" aria-labelledby="auth-title">
-        <div className="auth-card">
-          <OnboardingProgress />
-          <p className="tw-eyebrow auth-card__eyebrow">{copy.eyebrow}</p>
-          <h1 id="auth-title">{copy.heading}</h1>
-          <p>{copy.text}</p>
-
-          {selectedTrack ? (
-            <div className="journey-chip" aria-label="Your selected journey">
-              <span>Your Journey</span>
-              <strong>{assessmentTrackLabels[selectedTrack]}</strong>
-            </div>
-          ) : null}
-
-          <button
-            type="button"
-            disabled={isButtonDisabled}
-            onClick={handleGoogleSignIn}
-            aria-busy={isSigningIn}
-            className="oauth-button"
+        <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
+          <Link
+            to="/"
+            className="text-base font-semibold tracking-[0.16em] text-white transition hover:text-[#beb8ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
           >
-            {isSigningIn ? <Spinner /> : <GoogleIcon />}
-            <span>{isSigningIn ? "Connecting..." : "Continue with Google"}</span>
-          </button>
+            THE WAY
+          </Link>
+          <Link
+            to="/"
+            className="rounded-full border border-white/15 px-4 py-2 text-sm text-slate-200 transition hover:border-purple-300/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
+          >
+            Back<span className="hidden sm:inline"> to home</span>
+          </Link>
+        </header>
 
-          <p className="auth-card__security">Secure sign-in with Google</p>
+        <section className="mx-auto flex w-full max-w-[500px] flex-1 items-center py-10 sm:py-12">
+          <div className="w-full rounded-[19px] border border-white/60 bg-gradient-to-br from-[#1e2532]/90 to-[#0e1622]/80 p-6 text-center shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
+            <p className="mb-5 text-[13px] font-medium tracking-[0.2em] text-[#beb8ff]">{copy.eyebrow}</p>
 
-          <div className="auth-error-slot" aria-live="polite">
-            {errorMessage ? <p className="auth-error">{errorMessage}</p> : null}
+            <h1 className="mx-auto text-[31px] font-extrabold leading-tight tracking-normal text-[#f7f6ff] sm:text-[40px]">
+              {copy.heading}
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-[360px] text-sm leading-7 text-[#d9d7e7]">{copy.text}</p>
+
+            {selectedTrack ? (
+              <div className="mx-auto mt-7 rounded-xl border border-purple-300/25 bg-purple-400/10 px-4 py-3 text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#beb8ff]">Your path</p>
+                <p className="mt-1 text-sm font-semibold text-white">{assessmentTrackLabels[selectedTrack]}</p>
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              disabled={isButtonDisabled}
+              onClick={handleGoogleSignIn}
+              aria-busy={isSigningIn}
+              className="mt-7 flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white px-5 py-3 text-base font-bold text-[#172033] shadow-[0_1px_0_rgba(255,255,255,0.35)_inset,0_18px_40px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:border-purple-200 hover:bg-[#f7f6ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#121324] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 motion-reduce:hover:translate-y-0"
+            >
+              {isSigningIn ? <Spinner /> : <GoogleIcon />}
+              <span className="inline-block min-w-[178px]">{isSigningIn ? "Connecting..." : "Continue with Google"}</span>
+            </button>
+
+            <p className="mt-4 text-xs leading-6 text-slate-400">
+              Your progress and roadmap stay connected to your account.
+            </p>
+
+            <div className="mt-5 min-h-12" aria-live="polite">
+              {errorMessage ? (
+                <p className="rounded-lg border border-red-300/25 bg-red-500/10 px-4 py-3 text-left text-sm leading-6 text-red-100">
+                  {errorMessage}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }

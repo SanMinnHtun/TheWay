@@ -1,3 +1,4 @@
+import { initializeApp, type FirebaseApp } from "@firebase/app";
 import {
   browserLocalPersistence,
   getAuth,
@@ -7,13 +8,36 @@ import {
   type Auth,
   type User
 } from "@firebase/auth";
-import { getFirebaseApp } from "./firebase";
 
+let firebaseApp: FirebaseApp | null = null;
 let firebaseAuth: Auth | null = null;
 
+function getFirebaseConfig() {
+  const config = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string | undefined,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string | undefined,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefined,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID as string | undefined
+  };
+
+  const missingKeys = Object.entries(config)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingKeys.length > 0) {
+    throw new Error("missing-firebase-config");
+  }
+
+  return config as Record<keyof typeof config, string>;
+}
+
 export function getFirebaseAuth() {
+  if (!firebaseApp) {
+    firebaseApp = initializeApp(getFirebaseConfig());
+  }
+
   if (!firebaseAuth) {
-    firebaseAuth = getAuth(getFirebaseApp());
+    firebaseAuth = getAuth(firebaseApp);
   }
 
   return firebaseAuth;
