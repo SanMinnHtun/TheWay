@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import StarField from "./components/effects/StarField";
+import { useRevealOnView } from "./hooks/useRevealOnView";
 import { saveAssessmentTrack } from "./services/assessmentTrack";
 import type { AssessmentTrack } from "./types/onboarding";
 
@@ -75,21 +77,51 @@ function CheckIcon() {
   );
 }
 
-function OptionCard({ option }: { option: Option }) {
-  const navigate = useNavigate();
+function OptionCard({
+  option,
+  isSelected,
+  isMuted,
+  onChoose
+}: {
+  option: Option;
+  isSelected: boolean;
+  isMuted: boolean;
+  onChoose: (track: AssessmentTrack) => void;
+}) {
+  function handlePointerMove(event: PointerEvent<HTMLElement>) {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      return;
+    }
 
-  const handleChooseTrack = () => {
-    saveAssessmentTrack(option.assessmentTrack);
-    navigate("/auth", { state: { assessmentTrack: option.assessmentTrack } });
-  };
+    const card = event.currentTarget;
+    const bounds = card.getBoundingClientRect();
+    const x = event.clientX - bounds.left;
+    const y = event.clientY - bounds.top;
+    const rotateY = ((x / bounds.width - 0.5) * 6).toFixed(2);
+    const rotateX = ((0.5 - y / bounds.height) * 4).toFixed(2);
+
+    card.style.setProperty("--card-pointer-x", `${x}px`);
+    card.style.setProperty("--card-pointer-y", `${y}px`);
+    card.style.setProperty("--card-rotate-x", `${rotateX}deg`);
+    card.style.setProperty("--card-rotate-y", `${rotateY}deg`);
+  }
+
+  function handlePointerLeave(event: PointerEvent<HTMLElement>) {
+    event.currentTarget.style.setProperty("--card-rotate-x", "0deg");
+    event.currentTarget.style.setProperty("--card-rotate-y", "0deg");
+  }
 
   return (
-    <section className="choice-card">
+    <section
+      className={`choice-card ${isSelected ? "choice-card--selected" : ""} ${isMuted ? "choice-card--muted" : ""}`}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+    >
       <h2>{option.title}</h2>
       <p>{option.body}</p>
       <ul>
-        {option.items.map((item) => (
-          <li key={item}>
+        {option.items.map((item, index) => (
+          <li key={item} style={{ "--item-index": index } as CSSProperties}>
             <CheckIcon />
             <span>{item}</span>
           </li>
@@ -97,17 +129,19 @@ function OptionCard({ option }: { option: Option }) {
       </ul>
       <button
         type="button"
-        onClick={handleChooseTrack}
+        onClick={() => onChoose(option.assessmentTrack)}
       >
-        {option.action} <span>→</span>
+        {option.action} <span aria-hidden="true">→</span>
       </button>
     </section>
   );
 }
 
 function InfoCard({ card }: { card: InfoCardContent }) {
+  const { ref, isVisible } = useRevealOnView<HTMLElement>();
+
   return (
-    <article className={`info-card ${card.className}`}>
+    <article ref={ref} className={`info-card reveal-on-scroll ${isVisible ? "is-visible" : ""} ${card.className}`}>
       <h3>
         {card.title}
         <span>{card.accent}</span>
@@ -120,17 +154,45 @@ function InfoCard({ card }: { card: InfoCardContent }) {
 }
 
 export default function App() {
+  const navigate = useNavigate();
+  const [choosingTrack, setChoosingTrack] = useState<AssessmentTrack | null>(null);
+  const transitionTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimer.current) {
+        window.clearTimeout(transitionTimer.current);
+      }
+    };
+  }, []);
+
+  function handleChooseTrack(track: AssessmentTrack) {
+    if (choosingTrack) {
+      return;
+    }
+
+    saveAssessmentTrack(track);
+    setChoosingTrack(track);
+
+    transitionTimer.current = window.setTimeout(() => {
+      navigate("/auth", { state: { assessmentTrack: track } });
+    }, 260);
+  }
+
   return (
-    <main className="min-h-screen overflow-hidden bg-[#02090f] text-white">
+    <main className={`min-h-screen overflow-hidden bg-[#02090f] text-white page-transition ${choosingTrack ? "page-transition--exit" : ""}`}>
       <div className="landing-shell">
-        <StarField />
+        <StarField density={1.18} intensity={0.98} />
         <div className="glow glow-left" />
         <div className="glow glow-bottom" />
 
-        <section className="hero">
-          <p className="eyebrow">CAREER GUIDANCE</p>
-          <h1>Find The Right Career Starting Point For Your Journey</h1>
-          <p className="subcopy">
+        <section className="hero page-enter">
+          <p className="eyebrow hero-kicker">CAREER GUIDANCE</p>
+          <h1>
+            <span className="hero-line hero-line--one">Find The Right Career Starting</span>
+            <span className="hero-line hero-line--two">Point For Your Journey</span>
+          </h1>
+          <p className="subcopy hero-copy">
             Choose the kind of guidance you need right now.<br />
             You can either explore career paths that fit you, or get a roadmap for<br />
             a goal you already have.
@@ -138,7 +200,13 @@ export default function App() {
 
           <div className="choice-grid">
             {options.map((option) => (
-              <OptionCard key={option.title} option={option} />
+              <OptionCard
+                key={option.title}
+                option={option}
+                isSelected={choosingTrack === option.assessmentTrack}
+                isMuted={Boolean(choosingTrack && choosingTrack !== option.assessmentTrack)}
+                onChoose={handleChooseTrack}
+              />
             ))}
           </div>
         </section>
