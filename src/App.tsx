@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type PointerEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import StarField from "./components/effects/StarField";
 import { saveAssessmentTrack } from "./services/assessmentTrack";
 import type { AssessmentTrack } from "./types/onboarding";
 
@@ -244,6 +245,7 @@ export default function App() {
         <span className="tw-bg__grid" />
         <span className="tw-bg__light tw-bg__light--left" />
         <span className="tw-bg__light tw-bg__light--right" />
+        <StarField />
       </div>
 
       <LandingNav />
