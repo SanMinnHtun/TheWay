@@ -1,31 +1,9 @@
-import { useLocation } from "react-router-dom";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import spaceBg from "../assets/bg.png";
-import astronautImg from "../assets/astronaut.png";
+import { Link, useLocation } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
 import type { AuthUser } from "../services/firebaseAuth";
 import { assessmentTrackLabels, type AssessmentTrack } from "../types/onboarding";
-
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December"
-];
-
-const inputClass =
-  "w-full rounded-lg border border-slate-600 bg-[#1c1d30] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30";
-
-const labelClass = "mb-2 block text-sm font-medium text-slate-200";
 
 interface ProfileSetupLocationState {
   assessmentTrack?: AssessmentTrack;
@@ -35,13 +13,32 @@ interface ProfileSetupLocationState {
 
 interface ProfileFormData {
   name: string;
-  birthMonth: string;
-  birthDate: string;
-  birthYear: string;
+  dateOfBirth: string;
   gender: string;
   currentStatus: string;
   assessmentTrack: AssessmentTrack;
 }
+
+type ProfileErrors = Partial<Record<keyof ProfileFormData, string>>;
+
+const profileDraftStorageKey = "the-way.profile-draft";
+
+const currentStatusOptions = [
+  { value: "high-school-student", label: "High School Student" },
+  { value: "university-student", label: "University Student" },
+  { value: "self-taught-learner", label: "Self-taught Learner" },
+  { value: "career-switcher", label: "Career Switcher" },
+  { value: "junior-developer", label: "Junior Developer" },
+  { value: "software-professional", label: "Software Professional" },
+  { value: "other", label: "Other" }
+];
+
+const genderOptions = [
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
+  { value: "non-binary", label: "Non-binary" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" }
+];
 
 function resolveAssessmentTrack(locationState: ProfileSetupLocationState | null) {
   if (isAssessmentTrack(locationState?.assessmentTrack)) {
@@ -70,6 +67,76 @@ function getInitials(name: string, email: string) {
     .join("");
 }
 
+function isValidBirthDate(value: string) {
+  if (!value) {
+    return false;
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+  const today = new Date();
+  const minDate = new Date("1900-01-01T00:00:00");
+
+  return !Number.isNaN(date.getTime()) && date <= today && date >= minDate;
+}
+
+function validateProfile(data: ProfileFormData) {
+  const errors: ProfileErrors = {};
+
+  if (!data.name.trim()) {
+    errors.name = "Please enter your name.";
+  }
+
+  if (!isValidBirthDate(data.dateOfBirth)) {
+    errors.dateOfBirth = "Please enter a valid date of birth.";
+  }
+
+  if (!data.gender) {
+    errors.gender = "Please select a gender option.";
+  }
+
+  if (!data.currentStatus) {
+    errors.currentStatus = "Please select your current status.";
+  }
+
+  return errors;
+}
+
+function BrandMark() {
+  return (
+    <Link to="/" className="tw-brand" aria-label="The Way home">
+      <span className="tw-brand-mark" aria-hidden="true">
+        <span />
+      </span>
+      <span>The Way</span>
+    </Link>
+  );
+}
+
+function MiniNetwork() {
+  return (
+    <svg className="mini-network" viewBox="0 0 680 280" aria-hidden="true">
+      <path d="M70 206 C170 98 280 93 340 142 C410 201 510 190 610 76" />
+      <path d="M118 112 C238 38 416 42 548 151" />
+      <circle cx="70" cy="206" r="7" />
+      <circle cx="340" cy="142" r="8" />
+      <circle cx="610" cy="76" r="7" />
+      <circle cx="548" cy="151" r="5" />
+    </svg>
+  );
+}
+
+function OnboardingProgress() {
+  return (
+    <div className="onboarding-progress" aria-label="Onboarding progress">
+      <span className="is-complete">Account</span>
+      <i className="onboarding-progress__line" aria-hidden="true" />
+      <span className="is-active">Profile</span>
+      <i className="onboarding-progress__line" aria-hidden="true" />
+      <span>Assessment</span>
+    </div>
+  );
+}
+
 export default function ProfileSetup() {
   const location = useLocation();
   const locationState = location.state as ProfileSetupLocationState | null;
@@ -81,27 +148,54 @@ export default function ProfileSetup() {
 
   const [formData, setFormData] = useState<ProfileFormData>({
     name: authUser?.name ?? "",
-    birthMonth: "",
-    birthDate: "",
-    birthYear: "",
-    gender: "female",
+    dateOfBirth: "",
+    gender: "",
     currentStatus: "",
     assessmentTrack
   });
+  const [errors, setErrors] = useState<ProfileErrors>({});
+  const [isProfileReady, setIsProfileReady] = useState(false);
 
-  const updateField = <Field extends keyof ProfileFormData,>(
-    field: Field,
-    value: ProfileFormData[Field]
-  ) => {
+  const displayName = authUser?.name || formData.name || "The Way learner";
+  const displayEmail = authUser?.email || "Signed in with Google";
+
+  function updateField<Field extends keyof ProfileFormData>(field: Field, value: ProfileFormData[Field]) {
     setFormData((current) => ({
       ...current,
       [field]: value
     }));
-  };
+    setErrors((current) => ({
+      ...current,
+      [field]: undefined
+    }));
+    setIsProfileReady(false);
+  }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-  };
+
+    const nextErrors = validateProfile(formData);
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      setIsProfileReady(false);
+      return;
+    }
+
+    window.sessionStorage.setItem(
+      profileDraftStorageKey,
+      JSON.stringify({
+        id: authUser?.uid ?? "local-user",
+        name: formData.name.trim(),
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        occupation: formData.currentStatus,
+        track: formData.assessmentTrack,
+        updatedAt: new Date().toISOString()
+      })
+    );
+    setIsProfileReady(true);
+  }
 
   useEffect(() => {
     saveAssessmentTrack(assessmentTrack);
@@ -123,54 +217,44 @@ export default function ProfileSetup() {
   }, [authUser?.name]);
 
   return (
-    <main
-      className="min-h-screen bg-cover bg-center bg-no-repeat px-5 py-10 text-white sm:px-8 lg:px-12"
-      style={{ backgroundImage: `url(${spaceBg})` }}
-    >
-      <div className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-6xl grid-cols-1 items-center gap-10 md:grid-cols-2 lg:gap-16">
-        <section className="flex flex-col items-center text-center md:items-start md:text-left">
-          <div className="max-w-md">
-            <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">
-              Ready to Get Started?
-            </h1>
-            <p className="mt-4 text-base leading-7 text-slate-300">
-              Enter your details on the right to claim your space and start exploring.
-            </p>
-          </div>
+    <main className="tw-page profile-shell">
+      <div className="tw-bg" aria-hidden="true">
+        <span className="tw-bg__grid" />
+        <span className="tw-bg__light tw-bg__light--left" />
+        <span className="tw-bg__light tw-bg__light--right" />
+      </div>
+      <MiniNetwork />
 
-          <img
-            src={astronautImg}
-            alt="Astronaut"
-            className="mt-8 h-auto w-full max-w-[360px] object-contain md:max-w-[430px]"
-          />
-        </section>
+      <header className="profile-header">
+        <BrandMark />
+        <OnboardingProgress />
+      </header>
 
-        <section className="w-full rounded-2xl border border-slate-700/50 bg-[#121324]/80 p-6 shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white">Create your profile</h2>
+      <section className="profile-layout page-enter" aria-labelledby="profile-title">
+        <div className="profile-intro">
+          <p className="tw-eyebrow">Step 1 of 2</p>
+          <h1 id="profile-title">Complete your profile</h1>
+          <p>One small step before we personalize your career guidance.</p>
+        </div>
 
-            <div className="mt-6 flex items-center gap-4">
-              {authUser?.photoURL ? (
-                <img
-                  src={authUser.photoURL}
-                  alt=""
-                  className="h-12 w-12 shrink-0 rounded-full border border-purple-300/40 object-cover"
-                />
-              ) : (
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-purple-600 text-sm font-semibold text-white">
-                  {getInitials(authUser?.name ?? formData.name, authUser?.email ?? "")}
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-white">{authUser?.name || "The Way learner"}</p>
-                <p className="text-sm text-slate-400">{authUser?.email || "Signed in with Google"}</p>
+        <form className="profile-card" onSubmit={handleSubmit} noValidate>
+          <div className="profile-person">
+            {authUser?.photoURL ? (
+              <img src={authUser.photoURL} alt="" className="profile-person__avatar" />
+            ) : (
+              <div className="profile-person__avatar profile-person__avatar--fallback" aria-hidden="true">
+                {getInitials(displayName, displayEmail)}
               </div>
+            )}
+            <div>
+              <strong>{displayName}</strong>
+              <span>{displayEmail}</span>
             </div>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label className={labelClass} htmlFor="profile-name">
+          <div className="profile-fields">
+            <div className="profile-field profile-field--full">
+              <label className="form-label" htmlFor="profile-name">
                 Name
               </label>
               <input
@@ -178,108 +262,115 @@ export default function ProfileSetup() {
                 type="text"
                 value={formData.name}
                 onChange={(event) => updateField("name", event.target.value)}
-                className={inputClass}
+                className="form-input"
                 placeholder="Enter your full name"
+                autoComplete="name"
+                required
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? "profile-name-error" : undefined}
               />
+              {errors.name ? (
+                <p className="form-error" id="profile-name-error">
+                  {errors.name}
+                </p>
+              ) : null}
             </div>
 
-            <div>
-              <span className={labelClass}>Date Of Birth</span>
-              <div className="grid grid-cols-3 gap-3">
-                <select
-                  aria-label="Birth month"
-                  value={formData.birthMonth}
-                  onChange={(event) => updateField("birthMonth", event.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">Months</option>
-                  {months.map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  aria-label="Birth date"
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={formData.birthDate}
-                  onChange={(event) => updateField("birthDate", event.target.value)}
-                  className={inputClass}
-                  placeholder="Date"
-                />
-                <input
-                  aria-label="Birth year"
-                  type="number"
-                  min="1900"
-                  value={formData.birthYear}
-                  onChange={(event) => updateField("birthYear", event.target.value)}
-                  className={inputClass}
-                  placeholder="Year"
-                />
-              </div>
+            <div className="profile-field">
+              <label className="form-label" htmlFor="profile-date-of-birth">
+                Date of Birth
+              </label>
+              <input
+                id="profile-date-of-birth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(event) => updateField("dateOfBirth", event.target.value)}
+                className="form-input"
+                autoComplete="bday"
+                required
+                aria-invalid={Boolean(errors.dateOfBirth)}
+                aria-describedby={errors.dateOfBirth ? "profile-date-error" : undefined}
+              />
+              {errors.dateOfBirth ? (
+                <p className="form-error" id="profile-date-error">
+                  {errors.dateOfBirth}
+                </p>
+              ) : null}
             </div>
 
-            <fieldset>
-              <legend className={labelClass}>Gender</legend>
-              <div className="flex flex-wrap gap-5">
-                {["Male", "Female"].map((gender) => (
-                  <label key={gender} className="flex items-center gap-2 text-sm text-slate-200">
-                    <input
-                      type="radio"
-                      name="gender"
-                      value={gender.toLowerCase()}
-                      checked={formData.gender === gender.toLowerCase()}
-                      onChange={(event) => updateField("gender", event.target.value)}
-                      className="h-4 w-4 accent-purple-600"
-                    />
-                    {gender}
-                  </label>
+            <div className="profile-field">
+              <label className="form-label" htmlFor="profile-gender">
+                Gender
+              </label>
+              <select
+                id="profile-gender"
+                value={formData.gender}
+                onChange={(event) => updateField("gender", event.target.value)}
+                className="form-select"
+                autoComplete="sex"
+                required
+                aria-invalid={Boolean(errors.gender)}
+                aria-describedby={errors.gender ? "profile-gender-error" : undefined}
+              >
+                <option value="">Select</option>
+                {genderOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
                 ))}
-              </div>
-            </fieldset>
+              </select>
+              {errors.gender ? (
+                <p className="form-error" id="profile-gender-error">
+                  {errors.gender}
+                </p>
+              ) : null}
+            </div>
 
-            <div>
-              <label className={labelClass} htmlFor="profile-current-status">
+            <div className="profile-field profile-field--full">
+              <label className="form-label" htmlFor="profile-current-status">
                 Current Status
               </label>
               <select
                 id="profile-current-status"
                 value={formData.currentStatus}
                 onChange={(event) => updateField("currentStatus", event.target.value)}
-                className={inputClass}
+                className="form-select"
+                required
+                aria-invalid={Boolean(errors.currentStatus)}
+                aria-describedby={errors.currentStatus ? "profile-status-error" : undefined}
               >
                 <option value="">Choose your current status</option>
-                <option value="high-school-student">High School Student</option>
-                <option value="university-student">University Student</option>
-                <option value="self-taught-learner">Self-taught Learner</option>
-                <option value="career-switcher">Career Switcher</option>
-                <option value="junior-developer">Junior Developer</option>
-                <option value="software-professional">Software Professional</option>
-                <option value="other">Other</option>
+                {currentStatusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
-            </div>
-
-            <div>
-              <span className={labelClass}>Selected Path</span>
-              <div className="rounded-lg border border-purple-300/25 bg-purple-500/10 px-4 py-3">
-                <p className="text-sm font-medium text-white">{assessmentTrackLabels[formData.assessmentTrack]}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-400">
-                  This came from your landing page choice and will start the right assessment.
+              {errors.currentStatus ? (
+                <p className="form-error" id="profile-status-error">
+                  {errors.currentStatus}
                 </p>
-              </div>
+              ) : null}
             </div>
+          </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-purple-600 py-3 font-medium text-white transition hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#121324]"
-            >
-              Create Profile &amp; Continue
-            </button>
-          </form>
-        </section>
-      </div>
+          <div className="profile-journey">
+            <div>
+              <span>Your Journey</span>
+              <strong>{assessmentTrackLabels[formData.assessmentTrack]}</strong>
+            </div>
+            <Link to="/#choose-journey">Change</Link>
+          </div>
+
+          <button type="submit" className="tw-button tw-button--primary profile-submit">
+            Continue to Assessment
+          </button>
+
+          <div className="profile-success-slot" aria-live="polite">
+            {isProfileReady ? <p>Your profile is ready. Assessment screens are next.</p> : null}
+          </div>
+        </form>
+      </section>
     </main>
   );
 }
