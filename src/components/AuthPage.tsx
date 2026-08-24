@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import StarField from "./effects/StarField";
 import { getAuthErrorMessage, signInWithGoogle } from "../services/firebaseAuth";
 import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
 import { assessmentTrackLabels, type AssessmentTrack } from "../types/onboarding";
@@ -82,6 +83,7 @@ export default function AuthPage() {
     resolveTrack(location.state as AuthLocationState | null)
   );
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const copy = useMemo(() => (selectedTrack ? authCopyByTrack[selectedTrack] : neutralCopy), [selectedTrack]);
@@ -114,25 +116,29 @@ export default function AuthPage() {
 
     setErrorMessage("");
     setIsSigningIn(true);
+    setIsSignedIn(false);
 
     try {
       const user = await signInWithGoogle();
+      setIsSignedIn(true);
 
-      navigate("/profile-setup", {
-        replace: true,
-        state: {
-          assessmentTrack: selectedTrack ?? readAssessmentTrack(),
-          authUser: {
-            uid: user.uid,
-            name: user.displayName ?? "",
-            email: user.email ?? "",
-            photoURL: user.photoURL ?? ""
+      window.setTimeout(() => {
+        navigate("/profile-setup", {
+          replace: true,
+          state: {
+            assessmentTrack: selectedTrack ?? readAssessmentTrack(),
+            authUser: {
+              uid: user.uid,
+              name: user.displayName ?? "",
+              email: user.email ?? "",
+              photoURL: user.photoURL ?? ""
+            }
           }
-        }
-      });
+        });
+      }, 180);
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error));
-    } finally {
+      setIsSignedIn(false);
       setIsSigningIn(false);
     }
   }
@@ -141,39 +147,39 @@ export default function AuthPage() {
   const isButtonDisabled = isSigningIn || isAuthLoading;
 
   return (
-    <main className="min-h-[100dvh] overflow-hidden bg-[#02090f] text-white">
+    <main className="min-h-[100dvh] overflow-hidden bg-[#02090f] text-white page-transition">
       <div className="landing-shell flex min-h-[100dvh] flex-col !pb-8 !pt-6 sm:!px-8 sm:!pt-8">
-        <div className="stars-layer" />
+        <StarField density={0.72} intensity={0.58} speed={0.82} />
         <div className="glow glow-left" />
         <div className="glow glow-bottom" />
 
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
+        <header className="auth-header mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
           <Link
             to="/"
-            className="text-base font-semibold tracking-[0.16em] text-white transition hover:text-[#beb8ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
+            className="auth-brand text-base font-semibold tracking-[0.16em] text-white transition hover:text-[#beb8ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
           >
             THE WAY
           </Link>
           <Link
             to="/"
-            className="rounded-full border border-white/15 px-4 py-2 text-sm text-slate-200 transition hover:border-purple-300/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
+            className="auth-back rounded-full border border-white/15 px-4 py-2 text-sm text-slate-200 transition hover:border-purple-300/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
           >
-            Back<span className="hidden sm:inline"> to home</span>
+            <span aria-hidden="true">←</span> Back<span className="hidden sm:inline"> to home</span>
           </Link>
         </header>
 
         <section className="mx-auto flex w-full max-w-[500px] flex-1 items-center py-10 sm:py-12">
-          <div className="w-full rounded-[19px] border border-white/60 bg-gradient-to-br from-[#1e2532]/90 to-[#0e1622]/80 p-6 text-center shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
-            <p className="mb-5 text-[13px] font-medium tracking-[0.2em] text-[#beb8ff]">{copy.eyebrow}</p>
+          <div className="auth-card w-full rounded-[19px] border border-white/60 bg-gradient-to-br from-[#1e2532]/90 to-[#0e1622]/80 p-6 text-center shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
+            <p className="auth-card__eyebrow mb-5 text-[13px] font-medium tracking-[0.2em] text-[#beb8ff]">{copy.eyebrow}</p>
 
-            <h1 className="mx-auto text-[31px] font-extrabold leading-tight tracking-normal text-[#f7f6ff] sm:text-[40px]">
+            <h1 className="auth-card__title mx-auto text-[31px] font-extrabold leading-tight tracking-normal text-[#f7f6ff] sm:text-[40px]">
               {copy.heading}
             </h1>
 
-            <p className="mx-auto mt-5 max-w-[360px] text-sm leading-7 text-[#d9d7e7]">{copy.text}</p>
+            <p className="auth-card__copy mx-auto mt-5 max-w-[360px] text-sm leading-7 text-[#d9d7e7]">{copy.text}</p>
 
             {selectedTrack ? (
-              <div className="mx-auto mt-7 rounded-xl border border-purple-300/25 bg-purple-400/10 px-4 py-3 text-left">
+              <div className="auth-path mx-auto mt-7 rounded-xl border border-purple-300/25 bg-purple-400/10 px-4 py-3 text-left">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#beb8ff]">Your path</p>
                 <p className="mt-1 text-sm font-semibold text-white">{assessmentTrackLabels[selectedTrack]}</p>
               </div>
@@ -184,10 +190,10 @@ export default function AuthPage() {
               disabled={isButtonDisabled}
               onClick={handleGoogleSignIn}
               aria-busy={isSigningIn}
-              className="mt-7 flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white px-5 py-3 text-base font-bold text-[#172033] shadow-[0_1px_0_rgba(255,255,255,0.35)_inset,0_18px_40px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:border-purple-200 hover:bg-[#f7f6ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#121324] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 motion-reduce:hover:translate-y-0"
+              className="google-button mt-7 flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white px-5 py-3 text-base font-bold text-[#172033] shadow-[0_1px_0_rgba(255,255,255,0.35)_inset,0_18px_40px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:border-purple-200 hover:bg-[#f7f6ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#121324] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 motion-reduce:hover:translate-y-0"
             >
-              {isSigningIn ? <Spinner /> : <GoogleIcon />}
-              <span className="inline-block min-w-[178px]">{isSigningIn ? "Connecting..." : "Continue with Google"}</span>
+              {isSigningIn && !isSignedIn ? <Spinner /> : isSignedIn ? <span aria-hidden="true">✓</span> : <GoogleIcon />}
+              <span className="inline-block min-w-[178px]">{isSignedIn ? "Signed in" : isSigningIn ? "Connecting..." : "Continue with Google"}</span>
             </button>
 
             <p className="mt-4 text-xs leading-6 text-slate-400">
