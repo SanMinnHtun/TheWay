@@ -636,6 +636,241 @@ h1 {
   }
 }
 
+.profile-page {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+
+.profile-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 16% 22%, rgba(132, 97, 215, 0.18), transparent 34rem),
+    linear-gradient(115deg, rgba(2, 9, 15, 0.1), rgba(2, 9, 15, 0.68) 46%, rgba(2, 9, 15, 0.88));
+  pointer-events: none;
+}
+
+.profile-page .profile-star-field {
+  z-index: 0;
+  opacity: 0;
+  mask-image:
+    radial-gradient(ellipse at 67% 50%, rgba(0, 0, 0, 0.44), rgba(0, 0, 0, 0.82) 34%, #000 74%),
+    linear-gradient(#000, #000);
+}
+
+.profile-glow-left,
+.profile-glow-bottom {
+  z-index: 0;
+}
+
+.profile-layout {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-visual {
+  --astronaut-x: 0px;
+  --astronaut-y: 0px;
+}
+
+.profile-title,
+.profile-copy,
+.astronaut-frame,
+.profile-form-card {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: reveal-up var(--motion-reveal) var(--ease-standard) forwards;
+}
+
+.profile-title {
+  animation-delay: 100ms;
+}
+
+.profile-copy {
+  animation-delay: 180ms;
+}
+
+.astronaut-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(190, 184, 255, 0.24);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(190, 184, 255, 0.12), transparent 42%),
+    linear-gradient(145deg, rgba(18, 19, 36, 0.72), rgba(7, 10, 22, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 70px rgba(0, 0, 0, 0.26);
+  animation-delay: 270ms;
+}
+
+.astronaut-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 64%, rgba(7, 10, 22, 0.42));
+  pointer-events: none;
+}
+
+.astronaut-frame img {
+  display: block;
+  transform: translate3d(var(--astronaut-x), var(--astronaut-y), 0);
+  animation: astronaut-float 7s var(--ease-gentle) infinite alternate;
+  transition: transform var(--motion-slow) var(--ease-standard);
+}
+
+.profile-form-card {
+  position: relative;
+  overflow: hidden;
+  animation-delay: 190ms;
+}
+
+.profile-form-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), transparent 26%),
+    radial-gradient(circle at 100% 0%, rgba(132, 97, 215, 0.12), transparent 42%);
+  pointer-events: none;
+}
+
+.profile-form-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-identity,
+.profile-field {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: reveal-up 460ms var(--ease-standard) forwards;
+}
+
+.profile-identity {
+  animation-delay: 300ms;
+}
+
+.profile-field {
+  animation-delay: calc(360ms + (var(--field-index) * 55ms));
+}
+
+.profile-page input,
+.profile-page select {
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    background var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.profile-page input:hover,
+.profile-page select:hover {
+  border-color: rgba(190, 184, 255, 0.42);
+  background: #22233a;
+}
+
+.profile-page input:focus,
+.profile-page select:focus {
+  border-color: rgba(190, 184, 255, 0.92);
+  background: #22233a;
+  box-shadow:
+    0 0 0 2px rgba(132, 97, 215, 0.22),
+    0 10px 26px rgba(0, 0, 0, 0.12);
+}
+
+.profile-radio-option {
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--ease-standard);
+}
+
+.profile-radio-option:has(.profile-radio:checked) {
+  color: #fff;
+}
+
+.profile-radio {
+  transition:
+    box-shadow var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.profile-radio:checked {
+  box-shadow: 0 0 0 3px rgba(132, 97, 215, 0.18);
+  transform: scale(1.08);
+}
+
+.selected-path-panel {
+  position: relative;
+  padding-left: 44px;
+}
+
+.selected-path-panel > span {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(132, 97, 215, 0.4);
+  color: #fff;
+  font-size: 11px;
+  box-shadow: 0 0 18px rgba(132, 97, 215, 0.34);
+}
+
+.profile-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 16px 34px rgba(132, 97, 215, 0.22);
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.profile-submit span:last-child {
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.profile-submit:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 20px 42px rgba(132, 97, 215, 0.32);
+  transform: translateY(-2px);
+}
+
+.profile-submit:hover span:last-child {
+  transform: translateX(4px);
+}
+
+.profile-submit:active {
+  transform: scale(0.985);
+}
+
+.profile-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.78;
+  transform: none;
+}
+
+@keyframes astronaut-float {
+  from {
+    transform: translate3d(var(--astronaut-x), calc(var(--astronaut-y) - 4px), 0) rotate(-0.45deg);
+  }
+
+  to {
+    transform: translate3d(var(--astronaut-x), calc(var(--astronaut-y) + 4px), 0) rotate(0.45deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -656,7 +891,10 @@ h1 {
   .choice-card--selected,
   .choice-card--muted,
   .info-card:hover,
-  .google-button:active {
+  .google-button:active,
+  .astronaut-frame img,
+  .profile-submit:hover,
+  .profile-submit:active {
     transform: none;
   }
 }
@@ -727,5 +965,13 @@ h1 {
 
   .choice-card button {
     font-size: 14px;
+  }
+
+  .profile-page {
+    padding-top: 28px;
+  }
+
+  .astronaut-frame {
+    max-width: 280px;
   }
 }
