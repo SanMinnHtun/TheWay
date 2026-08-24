@@ -145,7 +145,7 @@ select {
 }
 
 h1 {
-  width: min(100%, 810px);
+  width: min(100%, 900px);
   margin: 0 auto;
   color: #f7f6ff;
   font-size: clamp(34px, 4.4vw, 47px);
@@ -159,6 +159,10 @@ h1 {
   opacity: 0;
   transform: translateY(34px);
   animation: heading-line var(--motion-reveal) var(--ease-standard) forwards;
+}
+
+.hero-line--one {
+  white-space: nowrap;
 }
 
 .hero-line--one {
@@ -929,6 +933,10 @@ h1 {
 
   .info-three {
     grid-column: auto;
+  }
+
+  .hero-line--one {
+    white-space: normal;
   }
 }
 
