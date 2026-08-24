@@ -40,6 +40,7 @@ select {
 }
 
 .star-field {
+  display: block;
   position: absolute;
   inset: 0;
   z-index: -3;
@@ -48,6 +49,10 @@ select {
   opacity: 0;
   pointer-events: none;
   animation: star-field-fade 520ms ease 80ms both;
+  mask-image:
+    radial-gradient(ellipse at 50% 43%, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.86) 32%, #000 72%),
+    linear-gradient(#000, #000);
+  will-change: opacity;
 }
 
 .glow {
@@ -74,6 +79,8 @@ select {
 }
 
 .hero {
+  position: relative;
+  z-index: 1;
   width: min(100%, 790px);
   margin: 0 auto;
   text-align: center;
@@ -189,6 +196,7 @@ h1 {
 
 .info-grid {
   position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(2, 388px);
   grid-auto-rows: minmax(151px, auto);
