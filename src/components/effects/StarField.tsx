@@ -4,13 +4,13 @@ interface Star {
   x: number;
   y: number;
   z: number;
-  size: number;
-  brightness: number;
+  baseSize: number;
+  baseBrightness: number;
   speed: number;
   layer: "far" | "mid" | "near";
   twinkle: boolean;
   twinklePhase: number;
-  tint: number;
+  twinkleSpeed: number;
 }
 
 interface PointerOffset {
@@ -18,9 +18,9 @@ interface PointerOffset {
   y: number;
 }
 
-const minDepth = 90;
-const maxDepth = 980;
-const focalLength = 420;
+const minDepth = 96;
+const maxDepth = 1120;
+const focalLength = 460;
 
 function clamp(min: number, value: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -31,11 +31,11 @@ function randomBetween(min: number, max: number) {
 }
 
 function getLayer(z: number): Star["layer"] {
-  if (z > 690) {
+  if (z > 760) {
     return "far";
   }
 
-  if (z > 320) {
+  if (z > 360) {
     return "mid";
   }
 
@@ -44,29 +44,29 @@ function getLayer(z: number): Star["layer"] {
 
 function getStarCount(width: number, height: number, isMobile: boolean) {
   const density = width * height;
-  const count = Math.round(density / (isMobile ? 12500 : 9800));
+  const count = Math.round(density / (isMobile ? 13000 : 11200));
 
-  return clamp(isMobile ? 42 : 88, count, isMobile ? 78 : 160);
+  return clamp(isMobile ? 42 : 92, count, isMobile ? 78 : 154);
 }
 
 function createStar(width: number, height: number, z = randomBetween(minDepth, maxDepth)): Star {
   const layer = getLayer(z);
-  const spreadX = width * 0.9;
-  const spreadY = height * 0.9;
-  const baseSize = layer === "far" ? randomBetween(0.42, 0.86) : layer === "mid" ? randomBetween(0.72, 1.26) : randomBetween(1.05, 1.88);
-  const speed = layer === "far" ? randomBetween(0.045, 0.115) : layer === "mid" ? randomBetween(0.1, 0.22) : randomBetween(0.18, 0.36);
+  const spreadX = width * 1.05;
+  const spreadY = height * 1.02;
+  const baseSize = layer === "far" ? randomBetween(0.48, 0.86) : layer === "mid" ? randomBetween(0.78, 1.24) : randomBetween(1.08, 1.72);
+  const speed = layer === "far" ? randomBetween(0.055, 0.13) : layer === "mid" ? randomBetween(0.14, 0.26) : randomBetween(0.24, 0.44);
 
   return {
     x: randomBetween(-spreadX, spreadX),
     y: randomBetween(-spreadY, spreadY),
     z,
-    size: baseSize,
-    brightness: layer === "far" ? randomBetween(0.2, 0.42) : layer === "mid" ? randomBetween(0.34, 0.62) : randomBetween(0.48, 0.78),
+    baseSize,
+    baseBrightness: layer === "far" ? randomBetween(0.18, 0.38) : layer === "mid" ? randomBetween(0.3, 0.58) : randomBetween(0.42, 0.7),
     speed,
     layer,
     twinkle: Math.random() < 0.08,
     twinklePhase: randomBetween(0, Math.PI * 2),
-    tint: Math.random()
+    twinkleSpeed: randomBetween(0.00028, 0.00046)
   };
 }
 
@@ -76,13 +76,13 @@ function resetStar(star: Star, width: number, height: number) {
   star.x = next.x;
   star.y = next.y;
   star.z = next.z;
-  star.size = next.size;
-  star.brightness = next.brightness;
+  star.baseSize = next.baseSize;
+  star.baseBrightness = next.baseBrightness;
   star.speed = next.speed;
   star.layer = next.layer;
   star.twinkle = next.twinkle;
   star.twinklePhase = next.twinklePhase;
-  star.tint = next.tint;
+  star.twinkleSpeed = next.twinkleSpeed;
 }
 
 function drawStarField(
@@ -92,7 +92,8 @@ function drawStarField(
   height: number,
   pointer: PointerOffset,
   time: number,
-  shouldMove: boolean
+  shouldMove: boolean,
+  speedMultiplier = 1
 ) {
   context.clearRect(0, 0, width, height);
 
@@ -101,7 +102,7 @@ function drawStarField(
 
   for (const star of stars) {
     if (shouldMove) {
-      star.z -= star.speed;
+      star.z -= star.speed * speedMultiplier;
 
       if (star.z < minDepth) {
         resetStar(star, width, height);
@@ -122,13 +123,14 @@ function drawStarField(
       continue;
     }
 
-    const purpleAtmosphere = clamp(0, 1 - screenX / (width * 0.52), 1);
-    const twinkle = star.twinkle ? 0.82 + Math.sin(time * 0.0008 + star.twinklePhase) * 0.12 : 1;
-    const opacity = clamp(0.08, (star.brightness + depthProgress * 0.24) * twinkle, 0.82);
-    const radius = clamp(0.38, star.size * (0.72 + depthProgress * 1.2) * scale * 1.22, 2.9);
-    const red = Math.round(230 + purpleAtmosphere * 20);
-    const green = Math.round(236 - purpleAtmosphere * 22);
-    const blue = Math.round(255);
+    const purpleAtmosphere = clamp(0, 1 - screenX / (width * 0.55), 1);
+    const readabilityMask = 1 - 0.3 * Math.exp(-(((screenX - centerX) / (width * 0.28)) ** 2 + ((screenY - centerY) / (height * 0.26)) ** 2));
+    const twinkle = star.twinkle ? 0.72 + Math.sin(time * star.twinkleSpeed + star.twinklePhase) * 0.13 : 1;
+    const opacity = clamp(0.06, (star.baseBrightness + depthProgress * 0.22) * twinkle * readabilityMask, 0.76);
+    const radius = clamp(0.36, star.baseSize * (0.76 + depthProgress * 1.24) * scale * 1.08, 2.85);
+    const red = Math.round(228 + purpleAtmosphere * 18);
+    const green = Math.round(234 - purpleAtmosphere * 16);
+    const blue = 255;
 
     context.beginPath();
     context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${opacity})`;
@@ -166,10 +168,10 @@ export default function StarField() {
     let height = 0;
     let dpr = 1;
     let animationFrame = 0;
-    let isVisible = true;
     let isInView = true;
     let isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let isMobile = window.matchMedia("(pointer: coarse), (max-width: 640px)").matches;
+    let resizeFrame = 0;
     let stars: Star[] = [];
     const targetPointer: PointerOffset = { x: 0, y: 0 };
     const currentPointer: PointerOffset = { x: 0, y: 0 };
@@ -197,11 +199,22 @@ export default function StarField() {
       drawStarField(renderingContext, stars, width, height, currentPointer, performance.now(), false);
     }
 
+    function requestResize() {
+      if (resizeFrame) {
+        return;
+      }
+
+      resizeFrame = window.requestAnimationFrame(() => {
+        resizeFrame = 0;
+        resize();
+      });
+    }
+
     function animate(time: number) {
-      if (!document.hidden && isVisible && isInView && !isReducedMotion) {
+      if (!document.hidden && isInView && !isReducedMotion) {
         currentPointer.x += (targetPointer.x - currentPointer.x) * 0.045;
         currentPointer.y += (targetPointer.y - currentPointer.y) * 0.045;
-        drawStarField(renderingContext, stars, width, height, currentPointer, time, true);
+        drawStarField(renderingContext, stars, width, height, currentPointer, time, true, isMobile ? 0.72 : 1);
       }
 
       animationFrame = window.requestAnimationFrame(animate);
@@ -222,7 +235,7 @@ export default function StarField() {
     }
 
     function handleVisibilityChange() {
-      if (!document.hidden) {
+      if (!document.hidden && isInView) {
         drawStarField(renderingContext, stars, width, height, currentPointer, performance.now(), false);
       }
     }
@@ -239,6 +252,10 @@ export default function StarField() {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const observer = new IntersectionObserver(([entry]) => {
       isInView = Boolean(entry?.isIntersecting);
+
+      if (isInView) {
+        drawStarField(renderingContext, stars, width, height, currentPointer, performance.now(), false);
+      }
     });
 
     observer.observe(starCanvas);
@@ -247,20 +264,18 @@ export default function StarField() {
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(starCanvas);
+    window.addEventListener("resize", requestResize, { passive: true });
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerleave", handlePointerLeave);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     motionQuery.addEventListener("change", handleReducedMotionChange);
 
-    const fadeTimer = window.setTimeout(() => {
-      isVisible = true;
-    }, 300);
-
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      window.clearTimeout(fadeTimer);
+      window.cancelAnimationFrame(resizeFrame);
       resizeObserver.disconnect();
       observer.disconnect();
+      window.removeEventListener("resize", requestResize);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerleave", handlePointerLeave);
       document.removeEventListener("visibilitychange", handleVisibilityChange);

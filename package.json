@@ -10,7 +10,6 @@
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
-    "@firebase/analytics": "^0.10.24",
     "@firebase/app": "^0.16.1",
     "@firebase/auth": "^1.13.5",
     "@vitejs/plugin-react": "^4.3.4",

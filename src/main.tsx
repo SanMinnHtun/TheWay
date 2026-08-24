@@ -5,15 +5,12 @@ import App from "./App";
 import AuthPage from "./components/AuthPage";
 import ProfileSetup from "./components/ProfileSetup";
 import "./index.css";
-import { initializeFirebaseAnalytics } from "./services/firebase";
 
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
   throw new Error("Root element not found");
 }
-
-void initializeFirebaseAnalytics();
 
 createRoot(rootElement).render(
   <StrictMode>
