@@ -127,6 +127,20 @@ button:disabled {
   background: radial-gradient(circle, rgba(167, 199, 255, 0.18), transparent 66%);
 }
 
+.star-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  animation: star-field-fade 520ms var(--tw-ease) 80ms both;
+  mask-image:
+    radial-gradient(ellipse at 43% 28%, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.86) 34%, black 66%),
+    linear-gradient(black, black);
+}
+
 .tw-brand {
   display: inline-flex;
   align-items: center;
@@ -1233,6 +1247,12 @@ select:focus-visible {
   }
 }
 
+@keyframes star-field-fade {
+  to {
+    opacity: 0.88;
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1543,5 +1563,9 @@ select:focus-visible {
 
   .career-network {
     transform: none !important;
+  }
+
+  .star-field {
+    opacity: 0.72;
   }
 }
