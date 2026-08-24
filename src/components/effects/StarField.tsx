@@ -198,10 +198,10 @@ export default function StarField() {
     }
 
     function animate(time: number) {
-      if (!document.hidden && isVisible && isInView) {
+      if (!document.hidden && isVisible && isInView && !isReducedMotion) {
         currentPointer.x += (targetPointer.x - currentPointer.x) * 0.045;
         currentPointer.y += (targetPointer.y - currentPointer.y) * 0.045;
-        drawStarField(renderingContext, stars, width, height, currentPointer, time, !isReducedMotion);
+        drawStarField(renderingContext, stars, width, height, currentPointer, time, true);
       }
 
       animationFrame = window.requestAnimationFrame(animate);
