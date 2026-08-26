@@ -7,9 +7,11 @@ import AuthPage from "./components/AuthPage";
 import ProfileSetup from "./components/ProfileSetup";
 import { RequireProfile, PublicOnlyRoute } from "./components/routing/RouteGuards";
 import { AuthProvider } from "./context/AuthContext";
+import EditProfile from "./pages/EditProfile";
 import ExploreCareers from "./pages/ExploreCareers";
 import LearningResources from "./pages/LearningResources";
 import MyRoadmap from "./pages/MyRoadmap";
+import ProfileDetails from "./pages/ProfileDetails";
 import Settings from "./pages/Settings";
 import WayAssistant from "./pages/WayAssistant";
 import "./index.css";
@@ -42,6 +44,8 @@ createRoot(rootElement).render(
               <Route path="explore" element={<ExploreCareers />} />
               <Route path="roadmap" element={<MyRoadmap />} />
               <Route path="assistant" element={<WayAssistant />} />
+              <Route path="profile" element={<ProfileDetails />} />
+              <Route path="profile/edit" element={<EditProfile />} />
               <Route path="settings" element={<Settings />} />
             </Route>
           </Route>

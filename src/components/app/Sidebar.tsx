@@ -69,18 +69,21 @@ export default function Sidebar({
   collapsed,
   drawer = false,
   onCollapseToggle,
-  onNavigate
+  onNavigate,
+  onSignOut
 }: {
   user: CurrentUser;
   collapsed: boolean;
   drawer?: boolean;
   onCollapseToggle?: () => void;
   onNavigate?: () => void;
+  onSignOut?: () => Promise<void>;
 }) {
   const navigate = useNavigate();
   const effectiveCollapsed = drawer ? false : collapsed;
 
-  function handleSignOut() {
+  async function handleSignOut() {
+    await onSignOut?.();
     onNavigate?.();
     navigate("/");
   }
@@ -101,12 +104,18 @@ export default function Sidebar({
         ) : null}
       </div>
 
-      <div className="app-sidebar-user">
+      <NavLink
+        to="/app/profile"
+        onClick={onNavigate}
+        className={`app-sidebar-user ${effectiveCollapsed ? "app-sidebar-user--collapsed" : ""}`}
+        aria-label={effectiveCollapsed ? "View profile" : undefined}
+        title={effectiveCollapsed ? "View profile" : undefined}
+      >
         <UserAvatar user={user} />
         <div className="app-sidebar-user-text">
           <span>{user.name}</span>
         </div>
-      </div>
+      </NavLink>
 
       <nav className="app-sidebar-nav" aria-label="Main navigation">
         {mainNavItems.map((item) => (
