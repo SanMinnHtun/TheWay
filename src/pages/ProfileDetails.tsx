@@ -3,6 +3,7 @@ import PageHeader from "../components/app/PageHeader";
 import { SkeletonCard } from "../components/app/Skeleton";
 import UserAvatar from "../components/app/UserAvatar";
 import { useAuth } from "../context/AuthContext";
+import { useI18n } from "../i18n/I18nContext";
 import { formatDateOfBirth, formatGender, formatMode, formatProfileTimestamp } from "../utils/profileFormat";
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -16,11 +17,12 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function ProfileDetails() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
 
   if (!profile || !user) {
     return (
       <section className="app-page-shell">
-        <PageHeader title="Profile" description="Manage your personal information." />
+        <PageHeader title={t("profile.title")} description={t("profile.description")} />
         <SkeletonCard className="min-h-[240px]" />
       </section>
     );
@@ -34,7 +36,7 @@ export default function ProfileDetails() {
 
   return (
     <section className="app-page-shell profile-page-shell">
-      <PageHeader title="Profile" description="Manage your personal information." />
+      <PageHeader title={t("profile.title")} description={t("profile.description")} />
 
       <section className="profile-summary-card">
         <UserAvatar user={profileUser} />
@@ -44,22 +46,22 @@ export default function ProfileDetails() {
           <span>{formatMode(profile.mode)}</span>
         </div>
         <Link to="/app/profile/edit" className="app-primary-link">
-          Edit Profile
+          {t("common.edit")}
         </Link>
       </section>
 
       <section className="profile-detail-card">
         <div className="profile-detail-card-header">
-          <h2>Personal Information</h2>
+          <h2>{t("profile.personal")}</h2>
         </div>
         <dl>
-          <InfoRow label="Name" value={profile.displayName || "Not set"} />
-          <InfoRow label="Date of Birth" value={formatDateOfBirth(profile.dateOfBirth)} />
-          <InfoRow label="Gender" value={formatGender(profile.gender)} />
-          <InfoRow label="Current Status" value={profile.currentStatus || "Not set"} />
-          <InfoRow label="Career Path" value={formatMode(profile.mode)} />
-          <InfoRow label="Account created" value={formatProfileTimestamp(profile.createdAt)} />
-          <InfoRow label="Updated" value={formatProfileTimestamp(profile.updatedAt)} />
+          <InfoRow label={t("profile.name")} value={profile.displayName || t("common.notSet")} />
+          <InfoRow label={t("profile.dateOfBirth")} value={profile.dateOfBirth ? formatDateOfBirth(profile.dateOfBirth) : t("common.notSet")} />
+          <InfoRow label={t("profile.gender")} value={profile.gender ? formatGender(profile.gender) : t("common.notSet")} />
+          <InfoRow label={t("profile.currentStatus")} value={profile.currentStatus || t("common.notSet")} />
+          <InfoRow label={t("profile.careerPath")} value={profile.mode === "GOAL" ? t("profile.modeGoal") : t("profile.modeExplore")} />
+          <InfoRow label={t("profile.created")} value={formatProfileTimestamp(profile.createdAt)} />
+          <InfoRow label={t("profile.updated")} value={formatProfileTimestamp(profile.updatedAt)} />
         </dl>
       </section>
     </section>

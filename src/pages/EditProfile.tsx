@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "../components/app/PageHeader";
 import UserAvatar from "../components/app/UserAvatar";
 import { useAuth } from "../context/AuthContext";
+import { useI18n } from "../i18n/I18nContext";
 import { getProfileErrorMessage, updateUserProfile } from "../services/profileService";
 import type { ProfileGender } from "../types/profile";
 
@@ -34,6 +35,7 @@ const statusOptions = [
 export default function EditProfile() {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
+  const { t } = useI18n();
   const [displayName, setDisplayName] = useState(profile?.displayName ?? user?.name ?? "");
   const [birthMonth, setBirthMonth] = useState(profile?.dateOfBirth?.month ? String(profile.dateOfBirth.month) : "");
   const [birthDay, setBirthDay] = useState(profile?.dateOfBirth?.day ? String(profile.dateOfBirth.day) : "");
@@ -61,12 +63,12 @@ export default function EditProfile() {
     event.preventDefault();
 
     if (!user || !profile) {
-      setError("We couldn't find your profile.");
+      setError(t("profile.errorMissing"));
       return;
     }
 
     if (!displayName.trim()) {
-      setError("Enter your name before saving.");
+      setError(t("profile.errorName"));
       return;
     }
 
@@ -75,7 +77,7 @@ export default function EditProfile() {
     const year = Number(birthYear);
 
     if (!month || !day || !year) {
-      setError("Enter a complete date of birth before saving.");
+      setError(t("profile.errorDob"));
       return;
     }
 
@@ -95,7 +97,7 @@ export default function EditProfile() {
         currentStatus
       });
       await refreshProfile();
-      setMessage("Profile updated successfully.");
+      setMessage(t("profile.updatedSuccess"));
       window.setTimeout(() => navigate("/app/profile"), 520);
     } catch (saveError) {
       setError(getProfileErrorMessage(saveError));
@@ -112,28 +114,28 @@ export default function EditProfile() {
 
   return (
     <section className="app-page-shell profile-page-shell">
-      <PageHeader title="Edit Profile" description="Update your personal information." />
+      <PageHeader title={t("profile.editTitle")} description={t("profile.editDescription")} />
 
       <form className="profile-edit-card" onSubmit={handleSubmit}>
         <div className="profile-edit-identity">
           <UserAvatar user={profileUser} />
           <div>
-            <h2>{profileUser.name || "TheWay learner"}</h2>
+            <h2>{profileUser.name || t("profile.learner")}</h2>
             <p>{profileUser.email}</p>
           </div>
         </div>
 
         <div className="profile-form-grid">
           <label className="profile-form-field">
-            <span>Name</span>
+            <span>{t("profile.name")}</span>
             <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
           </label>
 
           <div className="profile-form-field">
-            <span>Date of Birth</span>
+            <span>{t("profile.dateOfBirth")}</span>
             <div className="profile-date-grid">
               <select aria-label="Birth month" value={birthMonth} onChange={(event) => setBirthMonth(event.target.value)}>
-                <option value="">Month</option>
+                <option value="">{t("profile.birthMonth")}</option>
                 {months.map((month, index) => (
                   <option key={month} value={index + 1}>
                     {month}
@@ -147,7 +149,7 @@ export default function EditProfile() {
                 max="31"
                 value={birthDay}
                 onChange={(event) => setBirthDay(event.target.value)}
-                placeholder="Day"
+                placeholder={t("profile.birthDay")}
               />
               <input
                 aria-label="Birth year"
@@ -155,13 +157,13 @@ export default function EditProfile() {
                 min="1900"
                 value={birthYear}
                 onChange={(event) => setBirthYear(event.target.value)}
-                placeholder="Year"
+                placeholder={t("profile.birthYear")}
               />
             </div>
           </div>
 
           <fieldset className="profile-form-field">
-            <legend>Gender</legend>
+            <legend>{t("profile.gender")}</legend>
             <div className="profile-radio-row">
               {(["male", "female", "other"] as ProfileGender[]).map((option) => (
                 <label key={option}>
@@ -172,16 +174,22 @@ export default function EditProfile() {
                     checked={gender === option}
                     onChange={(event) => setGender(event.target.value as ProfileGender)}
                   />
-                  <span>{option[0].toUpperCase() + option.slice(1)}</span>
+                  <span>
+                    {option === "male"
+                      ? t("profile.genderMale")
+                      : option === "female"
+                        ? t("profile.genderFemale")
+                        : t("profile.genderOther")}
+                  </span>
                 </label>
               ))}
             </div>
           </fieldset>
 
           <label className="profile-form-field">
-            <span>Current Status</span>
+            <span>{t("profile.currentStatus")}</span>
             <select value={currentStatus} onChange={(event) => setCurrentStatus(event.target.value)}>
-              <option value="">Choose your current status</option>
+              <option value="">{t("profile.statusChoose")}</option>
               {statusOptions.map((option) => (
                 <option key={option} value={option}>
                   {option}
@@ -198,10 +206,10 @@ export default function EditProfile() {
 
         <div className="profile-form-actions">
           <Link to="/app/profile" className="app-secondary-link">
-            Cancel
+            {t("common.cancel")}
           </Link>
           <button type="submit" disabled={submitState === "saving"} className="app-primary-link">
-            {submitState === "saving" ? "Saving..." : "Save Changes"}
+            {submitState === "saving" ? t("common.saving") : t("common.save")}
           </button>
         </div>
       </form>
