@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "../components/app/PageHeader";
 import { useAuth } from "../context/AuthContext";
@@ -15,6 +15,7 @@ export default function Settings() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [confirmValue, setConfirmValue] = useState("");
   const [deleteState, setDeleteState] = useState<"idle" | "deleting">("idle");
+  const modalRef = useRef<HTMLDivElement | null>(null);
 
   async function handleLanguageChange(nextLanguage: AppLanguage) {
     setError("");
@@ -48,6 +49,37 @@ export default function Settings() {
     } catch (deleteError) {
       setError(getProfileErrorMessage(deleteError));
       setDeleteState("idle");
+    }
+  }
+
+  function handleModalKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      setIsDeleteOpen(false);
+      setConfirmValue("");
+      return;
+    }
+
+    if (event.key !== "Tab" || !modalRef.current) {
+      return;
+    }
+
+    const focusable = Array.from(
+      modalRef.current.querySelectorAll<HTMLElement>("button:not(:disabled), input, [href], [tabindex]:not([tabindex='-1'])")
+    );
+
+    if (focusable.length === 0) {
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
     }
   }
 
@@ -119,7 +151,14 @@ export default function Settings() {
 
       {isDeleteOpen ? (
         <div className="delete-modal-backdrop" role="presentation">
-          <div className="delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-profile-title">
+          <div
+            ref={modalRef}
+            className="delete-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-profile-title"
+            onKeyDown={handleModalKeyDown}
+          >
             <h2 id="delete-profile-title">{t("settings.confirmTitle")}</h2>
             <p>{t("settings.confirmDescription")}</p>
             <label>

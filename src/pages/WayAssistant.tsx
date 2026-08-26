@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import type { CurrentUser } from "../data/mockUser";
 import { useI18n } from "../i18n/I18nContext";
@@ -36,6 +36,19 @@ export default function WayAssistant() {
   ]);
 
   const visiblePrompts = useMemo(() => promptSuggestionKeys.map((key) => t(key)), [language, t]);
+
+  useEffect(() => {
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === "welcome"
+          ? {
+              ...message,
+              content: `${t("assistant.welcomeIntro", { name: currentUser.name })}\n\n${t("assistant.welcomeBody")}\n\n${t("assistant.welcomeQuestion")}`
+            }
+          : message
+      )
+    );
+  }, [currentUser.name, language, t]);
 
   function handlePromptClick(prompt: string) {
     setInputValue(prompt);
