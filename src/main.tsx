@@ -7,6 +7,7 @@ import AuthPage from "./components/AuthPage";
 import ProfileSetup from "./components/ProfileSetup";
 import { RequireProfile, PublicOnlyRoute } from "./components/routing/RouteGuards";
 import { AuthProvider } from "./context/AuthContext";
+import { I18nProvider } from "./i18n/I18nContext";
 import EditProfile from "./pages/EditProfile";
 import ExploreCareers from "./pages/ExploreCareers";
 import LearningResources from "./pages/LearningResources";
@@ -25,9 +26,10 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<App />} />
+      <I18nProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<App />} />
 
           <Route element={<PublicOnlyRoute />}>
             <Route path="/auth" element={<AuthPage />} />
@@ -51,8 +53,9 @@ createRoot(rootElement).render(
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </I18nProvider>
     </AuthProvider>
   </StrictMode>
 );
