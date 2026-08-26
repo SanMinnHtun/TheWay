@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import StarField from "./components/effects/StarField";
+import { useAuth } from "./context/AuthContext";
 import { useRevealOnView } from "./hooks/useRevealOnView";
 import { saveAssessmentTrack } from "./services/assessmentTrack";
 import type { AssessmentTrack } from "./types/onboarding";
@@ -155,6 +156,7 @@ function InfoCard({ card }: { card: InfoCardContent }) {
 
 export default function App() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [choosingTrack, setChoosingTrack] = useState<AssessmentTrack | null>(null);
   const transitionTimer = useRef<number | null>(null);
 
@@ -171,10 +173,21 @@ export default function App() {
       return;
     }
 
-    saveAssessmentTrack(track);
     setChoosingTrack(track);
 
     transitionTimer.current = window.setTimeout(() => {
+      if (auth.user && auth.profile?.onboardingCompleted) {
+        navigate("/app/assistant");
+        return;
+      }
+
+      saveAssessmentTrack(track);
+
+      if (auth.user) {
+        navigate("/profile-setup", { state: { assessmentTrack: track } });
+        return;
+      }
+
       navigate("/auth", { state: { assessmentTrack: track } });
     }, 260);
   }
