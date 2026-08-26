@@ -1,4 +1,4 @@
-import type { Timestamp } from "@firebase/firestore";
+import type { Timestamp } from "@firebase/firestore/lite";
 import type { AssessmentTrack } from "./onboarding";
 
 export type UserMode = "EXPLORE" | "GOAL";

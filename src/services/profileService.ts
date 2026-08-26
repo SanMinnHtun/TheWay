@@ -6,7 +6,7 @@ import {
   setDoc,
   updateDoc,
   type DocumentData
-} from "@firebase/firestore";
+} from "@firebase/firestore/lite";
 import { getFirebaseDb } from "../lib/firebase";
 import type { CreateProfileInput, UpdateProfileInput, UserProfile } from "../types/profile";
 
