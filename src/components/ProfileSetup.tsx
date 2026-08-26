@@ -3,10 +3,13 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEven
 import spaceBg from "../assets/bg.png";
 import astronautImg from "../assets/astronaut.png";
 import StarField from "./effects/StarField";
+import { useAuth } from "../context/AuthContext";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
 import type { AuthUser } from "../services/firebaseAuth";
+import { createUserProfile, getProfileErrorMessage } from "../services/profileService";
 import { assessmentTrackLabels, type AssessmentTrack } from "../types/onboarding";
+import { assessmentTrackToMode, type ProfileGender } from "../types/profile";
 
 const months = [
   "January",
@@ -74,6 +77,7 @@ function getInitials(name: string, email: string) {
 export default function ProfileSetup() {
   const location = useLocation();
   const navigate = useNavigate();
+  const auth = useAuth();
   const locationState = location.state as ProfileSetupLocationState | null;
   const authUserState = useAuthUser();
   const routeAuthUser = locationState?.authUser;
@@ -82,6 +86,7 @@ export default function ProfileSetup() {
   const assessmentTrack = useMemo(() => resolveAssessmentTrack(locationState), [locationState]);
   const feedbackTimer = useRef<number | null>(null);
   const [submitState, setSubmitState] = useState<"idle" | "creating" | "ready">("idle");
+  const [formError, setFormError] = useState("");
 
   const [formData, setFormData] = useState<ProfileFormData>({
     name: authUser?.name ?? "",
@@ -103,17 +108,65 @@ export default function ProfileSetup() {
     }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitState("creating");
+    const activeUser = auth.user ?? authUser;
 
-    feedbackTimer.current = window.setTimeout(() => {
+    if (!activeUser) {
+      setFormError("Please sign in with Google before creating your profile.");
+      return;
+    }
+
+    const day = Number(formData.birthDate);
+    const year = Number(formData.birthYear);
+    const month = months.findIndex((candidate) => candidate === formData.birthMonth) + 1;
+
+    if (!formData.name.trim()) {
+      setFormError("Enter your name to continue.");
+      return;
+    }
+
+    if (!month || !day || !year) {
+      setFormError("Enter a complete date of birth to continue.");
+      return;
+    }
+
+    setSubmitState("creating");
+    setFormError("");
+
+    try {
+      await createUserProfile(activeUser.uid, {
+        email: activeUser.email,
+        displayName: formData.name.trim(),
+        photoURL: activeUser.photoURL || null,
+        gender: formData.gender as ProfileGender,
+        dateOfBirth: {
+          day,
+          month,
+          year
+        },
+        currentStatus: formData.currentStatus,
+        mode: assessmentTrackToMode(formData.assessmentTrack),
+        language: "en"
+      });
+      await auth.refreshProfile();
       setSubmitState("ready");
 
-      window.setTimeout(() => {
+      feedbackTimer.current = window.setTimeout(() => {
         navigate("/app/assistant", { replace: true });
       }, 180);
-    }, 420);
+    } catch (error) {
+      setSubmitState("idle");
+      const message = getProfileErrorMessage(error);
+
+      if (error instanceof Error && error.message === "profile-already-exists") {
+        await auth.refreshProfile();
+        navigate("/app/assistant", { replace: true });
+        return;
+      }
+
+      setFormError(message);
+    }
   };
 
   function handleAstronautPointerMove(event: PointerEvent<HTMLElement>) {
@@ -273,7 +326,7 @@ export default function ProfileSetup() {
             <fieldset className="profile-field" style={{ "--field-index": 2 } as CSSProperties}>
               <legend className={labelClass}>Gender</legend>
               <div className="flex flex-wrap gap-5">
-                {["Male", "Female"].map((gender) => (
+                {["Male", "Female", "Other"].map((gender) => (
                   <label key={gender} className="profile-radio-option flex items-center gap-2 text-sm text-slate-200">
                     <input
                       type="radio"
@@ -319,6 +372,14 @@ export default function ProfileSetup() {
                   This came from your landing page choice and will start the right assessment.
                 </p>
               </div>
+            </div>
+
+            <div className="min-h-12" aria-live="polite">
+              {formError ? (
+                <p className="rounded-lg border border-red-300/25 bg-red-500/10 px-4 py-3 text-sm leading-6 text-red-100">
+                  {formError}
+                </p>
+              ) : null}
             </div>
 
             <button
