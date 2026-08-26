@@ -37,6 +37,18 @@ New tech learners often waste time switching between fields, tools, and courses 
 - Assessment output includes fit score, recommendation, reasoning, roadmap, and resources.
 - Dashboard shows the latest result and lets users access saved roadmaps and AI chat.
 
+## Current Authenticated Shell Phase
+
+Before the full dashboard and assessment output are implemented, the application should provide a polished authenticated shell that preserves the product direction without pretending backend data exists.
+
+Scope for this phase:
+
+- Route users from profile setup into the authenticated app.
+- Default authenticated destination is Way Assistant.
+- Fully design the sidebar, shared app layout, Way Assistant header, assistant conversation surface, prompt chips, composer, responsive navigation, and shared space background.
+- Provide polished skeleton shells for Learning Resources, Explore Careers, My Roadmap, and Settings.
+- Do not implement real AI, roadmap generation, resource recommendations, persistence, or backend integrations in this phase.
+
 ## Product Risks
 
 - Recommendations may feel arbitrary unless reasoning is visible.

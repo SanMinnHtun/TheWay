@@ -90,3 +90,20 @@ Outputs:
 - Optional roadmap or resource reference
 
 The assistant should explain roadmap steps, answer learning questions, and avoid unsupported claims about guaranteed jobs or outcomes.
+
+## Authenticated App Shell Contract
+
+Inputs:
+
+- Authenticated user identity or frontend mock user.
+- Current route.
+- Local UI state for sidebar collapse, mobile drawer, prompt selection, and mock assistant messages.
+
+Outputs:
+
+- Persistent app navigation shell.
+- Active route state with `aria-current="page"`.
+- Fully designed Way Assistant frontend surface.
+- Skeleton shells for resources, careers, roadmap, and settings.
+
+The app shell must not require backend data for this phase. It should preserve future integration points without embedding roadmap, resource, or assistant inference logic inside layout components.

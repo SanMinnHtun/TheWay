@@ -41,6 +41,16 @@ Used for `I Know My Goal`.
 
 The dashboard shows the latest recommendation first. It should include charts, roadmap stages, resource links, saved roadmap actions, assessment history, and AI assistant access.
 
+## Authenticated App Shell Flow
+
+This is the temporary post-profile destination while the full dashboard and assessment logic are still being built.
+
+1. User completes profile setup.
+2. User lands at `/app/assistant`.
+3. User sees the persistent app shell, sidebar navigation, assistant header, mock welcome message, suggested prompts, and message composer.
+4. User can navigate client-side between Learning Resources, Explore Careers, My Roadmap, Way Assistant, and Settings.
+5. Non-assistant routes render polished skeleton shells only until their data-backed features are implemented.
+
 ## Return User Flow
 
 Returning users should resume from the dashboard. They can review saved roadmaps, continue learning, retake an assessment, or ask the AI assistant follow-up questions.
