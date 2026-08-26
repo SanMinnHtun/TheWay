@@ -17,6 +17,7 @@ Use the specs as the source of truth for product decisions:
 - `docs/specs/data-model.md`: domain entities, relationships, and persistence rules.
 - `docs/specs/feature-contracts.md`: feature responsibilities and handoff contracts.
 - `docs/specs/design.md`: authenticated app shell, assistant UI, theme, responsive behavior, motion, and accessibility.
+- `docs/specs/firebase-profile-and-localization.md`: Firebase Spark profile CRUD, auth/profile routing, Firestore rules, profile UI, and English/Myanmar localization.
 
 If implementation needs to diverge from a spec, update the spec in the same pull request and explain why.
 

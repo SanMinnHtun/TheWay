@@ -20,11 +20,19 @@ Assessment scoring, roadmap generation, role matching, and resource mapping shou
 
 The frontend should eventually call backend endpoints for profiles, assessment results, roadmaps, resources, and chat sessions. Until a backend exists, use local mock data behind the same typed interfaces expected from the API.
 
+For the Firebase profile phase, profile CRUD is handled directly from the authenticated frontend using the Cloud Firestore client SDK and Firestore Security Rules. Profiles are stored at `users/{uid}` and read centrally through auth/profile context to avoid repeated Spark-plan reads.
+
 ## AI Integration Boundary
 
 AI calls should be isolated behind service functions. UI components should never construct raw prompts directly. The service boundary should accept normalized user profile, answers, and latest roadmap context, then return structured output.
 
 The current Way Assistant UI phase is mock-only. Local UI state may create temporary messages and prompt interactions, but any future networked assistant behavior must route through a chat service boundary.
+
+## Auth and Profile State
+
+Firebase Authentication state and Firestore profile state are separate. A restored Google session means the user is authenticated, but the app must still load `users/{uid}` to determine whether onboarding is complete.
+
+The frontend should expose centralized route state for loading, unauthenticated, authenticated without complete profile, and authenticated with complete profile.
 
 ## Expected Future Services
 

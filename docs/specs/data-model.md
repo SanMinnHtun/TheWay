@@ -6,14 +6,27 @@ Stores identity and personalization data.
 
 Fields:
 
-- `id`
-- `name`
+- `uid`
+- `email`
+- `displayName`
+- `photoURL`
 - `dateOfBirth`
 - `gender`
-- `occupation`
-- `track`
+- `currentStatus`
+- `mode`
+- `language`
+- `onboardingCompleted`
 - `createdAt`
 - `updatedAt`
+
+Rules:
+
+- User profiles are stored at `users/{uid}` in Firestore.
+- A user has exactly one main profile document.
+- The profile document ID must match the Firebase Authentication UID.
+- Profile creation must not overwrite an existing completed profile.
+- `mode` is `EXPLORE` or `GOAL`.
+- `language` is `en` or `my`.
 
 ## AssessmentResult
 

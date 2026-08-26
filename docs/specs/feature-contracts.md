@@ -59,11 +59,14 @@ Resources must be relevant to the exact stage and avoid generic course dumps.
 
 Inputs:
 
-- Name
+- Firebase Authentication UID
+- Email
+- Display name
 - Date of birth
 - Gender
-- Occupation
-- Track
+- Current status
+- Mode
+- Language
 - Preferences
 
 Outputs:
@@ -73,6 +76,8 @@ Outputs:
 - Dashboard context
 
 Profile changes should not rewrite previous assessment results.
+
+Profile storage is one document per user at `users/{uid}`. The profile feature owns create, read, update, and profile deletion operations through the profile service boundary.
 
 ## AI Assistant Contract
 

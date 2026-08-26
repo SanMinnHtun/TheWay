@@ -3,7 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import StarField from "../effects/StarField";
 import { CloseIcon, MenuIcon } from "./AppIcons";
 import Sidebar from "./Sidebar";
-import { currentUser } from "../../data/mockUser";
+import { useAuth } from "../../context/AuthContext";
 
 function getStoredCollapsedState() {
   if (typeof window === "undefined") {
@@ -15,9 +15,15 @@ function getStoredCollapsedState() {
 
 export default function AppShell() {
   const location = useLocation();
+  const auth = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(getStoredCollapsedState);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isAssistantRoute = location.pathname === "/app/assistant";
+  const currentUser = {
+    name: auth.profile?.displayName || auth.user?.name || "TheWay learner",
+    email: auth.profile?.email || auth.user?.email || "",
+    avatar: auth.profile?.photoURL || auth.user?.photoURL || null
+  };
 
   useEffect(() => {
     window.localStorage.setItem("theway.sidebarCollapsed", String(isCollapsed));
@@ -43,6 +49,7 @@ export default function AppShell() {
           user={currentUser}
           collapsed={isCollapsed}
           onCollapseToggle={() => setIsCollapsed((current) => !current)}
+          onSignOut={auth.signOut}
         />
       </div>
 
@@ -74,12 +81,18 @@ export default function AppShell() {
           >
             <CloseIcon className="h-5 w-5" />
           </button>
-          <Sidebar user={currentUser} collapsed={false} drawer onNavigate={() => setIsDrawerOpen(false)} />
+          <Sidebar
+            user={currentUser}
+            collapsed={false}
+            drawer
+            onNavigate={() => setIsDrawerOpen(false)}
+            onSignOut={auth.signOut}
+          />
         </div>
       </div>
 
       <main className="app-main" key={location.pathname}>
-        <Outlet context={{ currentUser }} />
+        <Outlet context={{ currentUser, profile: auth.profile }} />
       </main>
     </div>
   );

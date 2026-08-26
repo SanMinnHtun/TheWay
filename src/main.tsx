@@ -5,9 +5,14 @@ import App from "./App";
 import AppShell from "./components/app/AppShell";
 import AuthPage from "./components/AuthPage";
 import ProfileSetup from "./components/ProfileSetup";
+import { RequireProfile, PublicOnlyRoute } from "./components/routing/RouteGuards";
+import { AuthProvider } from "./context/AuthContext";
+import { I18nProvider } from "./i18n/I18nContext";
+import EditProfile from "./pages/EditProfile";
 import ExploreCareers from "./pages/ExploreCareers";
 import LearningResources from "./pages/LearningResources";
 import MyRoadmap from "./pages/MyRoadmap";
+import ProfileDetails from "./pages/ProfileDetails";
 import Settings from "./pages/Settings";
 import WayAssistant from "./pages/WayAssistant";
 import "./index.css";
@@ -20,21 +25,37 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/profile-setup" element={<ProfileSetup />} />
-        <Route path="/app" element={<AppShell />}>
-          <Route index element={<Navigate to="/app/assistant" replace />} />
-          <Route path="resources" element={<LearningResources />} />
-          <Route path="explore" element={<ExploreCareers />} />
-          <Route path="roadmap" element={<MyRoadmap />} />
-          <Route path="assistant" element={<WayAssistant />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <I18nProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<App />} />
+
+          <Route element={<PublicOnlyRoute />}>
+            <Route path="/auth" element={<AuthPage />} />
+          </Route>
+
+          <Route element={<PublicOnlyRoute allowProfileSetup />}>
+            <Route path="/profile-setup" element={<ProfileSetup />} />
+          </Route>
+
+          <Route element={<RequireProfile />}>
+            <Route path="/app" element={<AppShell />}>
+              <Route index element={<Navigate to="/app/assistant" replace />} />
+              <Route path="resources" element={<LearningResources />} />
+              <Route path="explore" element={<ExploreCareers />} />
+              <Route path="roadmap" element={<MyRoadmap />} />
+              <Route path="assistant" element={<WayAssistant />} />
+              <Route path="profile" element={<ProfileDetails />} />
+              <Route path="profile/edit" element={<EditProfile />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </I18nProvider>
+    </AuthProvider>
   </StrictMode>
 );

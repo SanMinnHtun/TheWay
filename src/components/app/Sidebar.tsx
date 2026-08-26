@@ -1,6 +1,8 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";
 import type { CurrentUser } from "../../data/mockUser";
+import { useI18n } from "../../i18n/I18nContext";
+import type { TranslationKey } from "../../i18n/translations";
 import UserAvatar from "./UserAvatar";
 import {
   BookIcon,
@@ -15,20 +17,20 @@ import {
 type NavIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
 interface NavigationItem {
-  label: string;
+  labelKey: TranslationKey;
   to: string;
   icon: NavIcon;
 }
 
 const mainNavItems: NavigationItem[] = [
-  { label: "Learning Resources", to: "/app/resources", icon: BookIcon },
-  { label: "Explore Careers", to: "/app/explore", icon: CompassIcon },
-  { label: "My Roadmap", to: "/app/roadmap", icon: MapIcon },
-  { label: "Way Assistant", to: "/app/assistant", icon: SparkleIcon }
+  { labelKey: "sidebar.resources", to: "/app/resources", icon: BookIcon },
+  { labelKey: "sidebar.explore", to: "/app/explore", icon: CompassIcon },
+  { labelKey: "sidebar.roadmap", to: "/app/roadmap", icon: MapIcon },
+  { labelKey: "sidebar.assistant", to: "/app/assistant", icon: SparkleIcon }
 ];
 
 const settingsItem: NavigationItem = {
-  label: "Settings",
+  labelKey: "sidebar.settings",
   to: "/app/settings",
   icon: SettingsIcon
 };
@@ -42,14 +44,16 @@ function SidebarItem({
   collapsed: boolean;
   onNavigate?: () => void;
 }) {
+  const { t } = useI18n();
   const Icon = item.icon;
+  const label = t(item.labelKey);
 
   return (
     <NavLink
       to={item.to}
       onClick={onNavigate}
-      aria-label={collapsed ? item.label : undefined}
-      title={collapsed ? item.label : undefined}
+      aria-label={collapsed ? label : undefined}
+      title={collapsed ? label : undefined}
       className={({ isActive }) =>
         `app-sidebar-item ${isActive ? "app-sidebar-item--active" : ""} ${collapsed ? "app-sidebar-item--collapsed" : ""}`
       }
@@ -57,7 +61,7 @@ function SidebarItem({
       {({ isActive }) => (
         <>
           <Icon className={`h-5 w-5 shrink-0 ${isActive ? "text-[#c4b5fd]" : "text-[#a78bfa]"}`} />
-          <span className="app-sidebar-label">{item.label}</span>
+          <span className="app-sidebar-label">{label}</span>
         </>
       )}
     </NavLink>
@@ -69,18 +73,22 @@ export default function Sidebar({
   collapsed,
   drawer = false,
   onCollapseToggle,
-  onNavigate
+  onNavigate,
+  onSignOut
 }: {
   user: CurrentUser;
   collapsed: boolean;
   drawer?: boolean;
   onCollapseToggle?: () => void;
   onNavigate?: () => void;
+  onSignOut?: () => Promise<void>;
 }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const effectiveCollapsed = drawer ? false : collapsed;
 
-  function handleSignOut() {
+  async function handleSignOut() {
+    await onSignOut?.();
     onNavigate?.();
     navigate("/");
   }
@@ -101,12 +109,18 @@ export default function Sidebar({
         ) : null}
       </div>
 
-      <div className="app-sidebar-user">
+      <NavLink
+        to="/app/profile"
+        onClick={onNavigate}
+        className={`app-sidebar-user ${effectiveCollapsed ? "app-sidebar-user--collapsed" : ""}`}
+        aria-label={effectiveCollapsed ? t("sidebar.profile") : undefined}
+        title={effectiveCollapsed ? t("sidebar.profile") : undefined}
+      >
         <UserAvatar user={user} />
         <div className="app-sidebar-user-text">
           <span>{user.name}</span>
         </div>
-      </div>
+      </NavLink>
 
       <nav className="app-sidebar-nav" aria-label="Main navigation">
         {mainNavItems.map((item) => (
@@ -120,11 +134,11 @@ export default function Sidebar({
           type="button"
           className={`app-sidebar-item app-sidebar-signout ${effectiveCollapsed ? "app-sidebar-item--collapsed" : ""}`}
           onClick={handleSignOut}
-          aria-label={effectiveCollapsed ? "Sign out" : undefined}
-          title={effectiveCollapsed ? "Sign out" : undefined}
+          aria-label={effectiveCollapsed ? t("sidebar.signOut") : undefined}
+          title={effectiveCollapsed ? t("sidebar.signOut") : undefined}
         >
           <SignOutIcon className="h-5 w-5 shrink-0 text-[#a78bfa]" />
-          <span className="app-sidebar-label">Sign Out</span>
+          <span className="app-sidebar-label">{t("sidebar.signOut")}</span>
         </button>
       </nav>
     </aside>

@@ -12,6 +12,7 @@
   "dependencies": {
     "@firebase/app": "^0.16.1",
     "@firebase/auth": "^1.13.5",
+    "@firebase/firestore": "^4.17.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.0",

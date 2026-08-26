@@ -1,18 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import type { CurrentUser } from "../data/mockUser";
+import { useI18n } from "../i18n/I18nContext";
 import AssistantHeader from "../components/assistant/AssistantHeader";
 import ChatComposer from "../components/assistant/ChatComposer";
 import ChatMessage, { type ChatMessageModel } from "../components/assistant/ChatMessage";
 import PromptChip from "../components/assistant/PromptChip";
 
-const promptSuggestions = [
-  "What should I learn next?",
-  "Explore careers for me",
-  "Review my roadmap progress",
-  "Best resources for my next skill",
-  "Explain my current milestone"
-];
+const promptSuggestionKeys = [
+  "assistant.prompt.next",
+  "assistant.prompt.careers",
+  "assistant.prompt.progress",
+  "assistant.prompt.resources",
+  "assistant.prompt.milestone"
+] as const;
 
 function getMockTime() {
   return new Intl.DateTimeFormat("en", {
@@ -23,17 +24,31 @@ function getMockTime() {
 
 export default function WayAssistant() {
   const { currentUser } = useOutletContext<{ currentUser: CurrentUser }>();
+  const { t, language } = useI18n();
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessageModel[]>(() => [
     {
       id: "welcome",
       role: "assistant",
       timestamp: "9:00 AM",
-      content: `Hi ${currentUser.name}! I'm The Way - your AI career guide.\n\nI can help you understand your roadmap, explore career paths, find learning resources, review your progress, or explain what you should learn next.\n\nWhat would you like to explore today?`
+      content: `${t("assistant.welcomeIntro", { name: currentUser.name })}\n\n${t("assistant.welcomeBody")}\n\n${t("assistant.welcomeQuestion")}`
     }
   ]);
 
-  const visiblePrompts = useMemo(() => promptSuggestions, []);
+  const visiblePrompts = useMemo(() => promptSuggestionKeys.map((key) => t(key)), [language, t]);
+
+  useEffect(() => {
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === "welcome"
+          ? {
+              ...message,
+              content: `${t("assistant.welcomeIntro", { name: currentUser.name })}\n\n${t("assistant.welcomeBody")}\n\n${t("assistant.welcomeQuestion")}`
+            }
+          : message
+      )
+    );
+  }, [currentUser.name, language, t]);
 
   function handlePromptClick(prompt: string) {
     setInputValue(prompt);
