@@ -1,0 +1,94 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function ownsProfile(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function profileKeys() {
+      return [
+        "uid",
+        "email",
+        "displayName",
+        "photoURL",
+        "gender",
+        "dateOfBirth",
+        "currentStatus",
+        "mode",
+        "language",
+        "onboardingCompleted",
+        "createdAt",
+        "updatedAt"
+      ];
+    }
+
+    function requiredProfileKeys() {
+      return [
+        "uid",
+        "email",
+        "displayName",
+        "mode",
+        "language",
+        "onboardingCompleted",
+        "createdAt",
+        "updatedAt"
+      ];
+    }
+
+    function hasValidDateOfBirth(data) {
+      return !("dateOfBirth" in data)
+        || (
+          data.dateOfBirth is map
+          && data.dateOfBirth.keys().hasOnly(["day", "month", "year"])
+          && data.dateOfBirth.day is int
+          && data.dateOfBirth.day >= 1
+          && data.dateOfBirth.day <= 31
+          && data.dateOfBirth.month is int
+          && data.dateOfBirth.month >= 1
+          && data.dateOfBirth.month <= 12
+          && data.dateOfBirth.year is int
+          && data.dateOfBirth.year >= 1900
+          && data.dateOfBirth.year <= 2100
+        );
+    }
+
+    function hasValidProfileShape(data) {
+      return data.keys().hasOnly(profileKeys())
+        && data.keys().hasAll(requiredProfileKeys())
+        && data.uid is string
+        && data.email is string
+        && data.displayName is string
+        && (!("photoURL" in data) || data.photoURL == null || data.photoURL is string)
+        && (!("gender" in data) || data.gender in ["male", "female", "other"])
+        && (!("currentStatus" in data) || data.currentStatus is string)
+        && data.mode in ["EXPLORE", "GOAL"]
+        && data.language in ["en", "my"]
+        && data.onboardingCompleted is bool
+        && hasValidDateOfBirth(data);
+    }
+
+    match /users/{userId} {
+      allow read: if ownsProfile(userId);
+
+      allow create: if ownsProfile(userId)
+        && hasValidProfileShape(request.resource.data)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if ownsProfile(userId)
+        && hasValidProfileShape(request.resource.data)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if ownsProfile(userId);
+    }
+  }
+}
