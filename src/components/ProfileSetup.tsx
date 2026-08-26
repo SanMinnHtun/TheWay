@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type PointerEvent } from "react";
 import spaceBg from "../assets/bg.png";
 import astronautImg from "../assets/astronaut.png";
@@ -73,6 +73,7 @@ function getInitials(name: string, email: string) {
 
 export default function ProfileSetup() {
   const location = useLocation();
+  const navigate = useNavigate();
   const locationState = location.state as ProfileSetupLocationState | null;
   const authUserState = useAuthUser();
   const routeAuthUser = locationState?.authUser;
@@ -108,6 +109,10 @@ export default function ProfileSetup() {
 
     feedbackTimer.current = window.setTimeout(() => {
       setSubmitState("ready");
+
+      window.setTimeout(() => {
+        navigate("/app/assistant", { replace: true });
+      }, 180);
     }, 420);
   };
 
