@@ -31,6 +31,8 @@ Authenticated app routes should live under `/app`:
 - `/app/explore`: Explore Careers.
 - `/app/roadmap`: My Roadmap.
 - `/app/assistant`: Way Assistant.
+- `/app/profile`: Profile details.
+- `/app/profile/edit`: Edit profile.
 - `/app/settings`: Settings.
 
 For this phase, `/app/assistant` is the default authenticated destination after profile setup.
@@ -290,3 +292,24 @@ Recommended reusable components:
 - `SkeletonCard`
 
 Keep assistant data local and mock-only for this phase. Future AI integration should live behind a service boundary rather than inside UI components.
+
+## Profile and Settings UI
+
+Profile and settings screens must preserve the same dark-purple authenticated app shell. Use dark elevated cards, lavender borders, white primary text, muted secondary text, and restrained danger styling.
+
+Profile details should be readable and uncluttered:
+
+- Profile summary card with avatar, display name, email, and current path.
+- Personal information field rows.
+- Created and updated metadata.
+- Clear edit action.
+
+Settings should include cards or sections for:
+
+- Profile.
+- Language.
+- Account.
+
+Delete profile belongs only in an account danger zone and requires a confirmation modal.
+
+The sidebar avatar/name row should navigate to `/app/profile`.

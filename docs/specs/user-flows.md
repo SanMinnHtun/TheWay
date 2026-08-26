@@ -15,9 +15,10 @@ Users provide name, date of birth, gender, occupation, and track. The profile st
 
 Required outcome:
 
-- User profile exists.
+- User profile exists at `users/{firebaseAuthUid}`.
 - Track is selected.
 - User can continue directly into the correct assessment.
+- Completed users should not be sent through profile setup again.
 
 ## Beginner Assessment Flow
 
@@ -54,3 +55,7 @@ This is the temporary post-profile destination while the full dashboard and asse
 ## Return User Flow
 
 Returning users should resume from the dashboard. They can review saved roadmaps, continue learning, retake an assessment, or ask the AI assistant follow-up questions.
+
+For the current authenticated shell phase, returning users with restored Firebase sessions and complete Firestore profiles should be routed directly to `/app/assistant`.
+
+Returning users must not see the Google sign-in card or profile setup again unless they explicitly signed out, lost authentication, or deleted their profile.
