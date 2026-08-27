@@ -177,7 +177,7 @@ export default function App() {
 
     transitionTimer.current = window.setTimeout(() => {
       if (auth.user && auth.profile?.onboardingCompleted) {
-        navigate("/app/assistant");
+        navigate("/app/explore");
         return;
       }
 

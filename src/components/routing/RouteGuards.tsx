@@ -56,7 +56,7 @@ export function PublicOnlyRoute({ allowProfileSetup = false }: { allowProfileSet
   }
 
   if (auth.userState === "authenticated-profile-complete") {
-    return <Navigate to="/app/assistant" replace />;
+    return <Navigate to="/app/explore" replace />;
   }
 
   if (allowProfileSetup && auth.userState === "authenticated-no-profile") {
