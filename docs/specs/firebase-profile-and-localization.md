@@ -92,13 +92,13 @@ Use reusable guards:
 
 Required routing:
 
-- `/auth`: completed authenticated users redirect to `/app/assistant` without showing the Google sign-in card first.
-- `/profile-setup`: completed authenticated users redirect to `/app/assistant`.
+- `/auth`: completed authenticated users redirect to `/app/explore` without showing the Google sign-in card first.
+- `/profile-setup`: completed authenticated users redirect to `/app/explore`.
 - `/app/*`: unauthenticated users redirect to `/auth`; authenticated users without complete profile redirect to `/profile-setup`.
 
 ## Landing CTA Routing
 
-Landing actions still preserve the selected track for first-time onboarding. If Firebase already has an authenticated user with a completed profile, landing CTAs should route directly to `/app/assistant` and should not force Google sign-in again or overwrite the stored profile mode.
+Landing actions still preserve the selected track for first-time onboarding. If Firebase already has an authenticated user with a completed profile, landing CTAs should route directly to `/app/explore` and should not force Google sign-in again or overwrite the stored profile mode.
 
 ## Profile CRUD
 
