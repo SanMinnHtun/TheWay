@@ -23,9 +23,9 @@ interface NavigationItem {
 }
 
 const mainNavItems: NavigationItem[] = [
-  { labelKey: "sidebar.resources", to: "/app/resources", icon: BookIcon },
   { labelKey: "sidebar.explore", to: "/app/explore", icon: CompassIcon },
   { labelKey: "sidebar.roadmap", to: "/app/roadmap", icon: MapIcon },
+  { labelKey: "sidebar.resources", to: "/app/resources", icon: BookIcon },
   { labelKey: "sidebar.assistant", to: "/app/assistant", icon: SparkleIcon }
 ];
 
