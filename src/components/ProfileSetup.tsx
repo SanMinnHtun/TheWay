@@ -153,7 +153,7 @@ export default function ProfileSetup() {
       setSubmitState("ready");
 
       feedbackTimer.current = window.setTimeout(() => {
-        navigate("/app/assistant", { replace: true });
+        navigate("/app/explore", { replace: true });
       }, 180);
     } catch (error) {
       setSubmitState("idle");
@@ -161,7 +161,7 @@ export default function ProfileSetup() {
 
       if (error instanceof Error && error.message === "profile-already-exists") {
         await auth.refreshProfile();
-        navigate("/app/assistant", { replace: true });
+        navigate("/app/explore", { replace: true });
         return;
       }
 
