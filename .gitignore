@@ -3,6 +3,7 @@ node_modules/
 
 # Production builds
 dist/
+.firebase/
 
 # Local environment files
 .env
