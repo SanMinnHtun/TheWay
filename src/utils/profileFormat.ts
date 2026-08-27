@@ -1,5 +1,5 @@
 import type { Timestamp } from "@firebase/firestore";
-import type { ProfileDateOfBirth, UserMode } from "../types/profile";
+import type { AppLanguage, ProfileDateOfBirth, UserMode } from "../types/profile";
 
 const monthNames = [
   "January",
@@ -16,24 +16,38 @@ const monthNames = [
   "December"
 ];
 
-export function formatDateOfBirth(dateOfBirth?: ProfileDateOfBirth) {
+function getLocale(language: AppLanguage = "en") {
+  return language === "my" ? "my-MM" : "en";
+}
+
+export function formatDateOfBirth(dateOfBirth?: ProfileDateOfBirth, language: AppLanguage = "en") {
   if (!dateOfBirth) {
     return "Not set";
   }
 
-  const month = monthNames[dateOfBirth.month - 1] ?? "";
+  const date = new Date(dateOfBirth.year, dateOfBirth.month - 1, dateOfBirth.day);
 
-  return `${dateOfBirth.day} ${month} ${dateOfBirth.year}`;
+  if (Number.isNaN(date.getTime())) {
+    const month = monthNames[dateOfBirth.month - 1] ?? "";
+
+    return `${dateOfBirth.day} ${month} ${dateOfBirth.year}`;
+  }
+
+  return new Intl.DateTimeFormat(getLocale(language), {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(date);
 }
 
-export function formatProfileTimestamp(value: Timestamp | Date | null) {
+export function formatProfileTimestamp(value: Timestamp | Date | null, language: AppLanguage = "en") {
   if (!value) {
     return "Not available";
   }
 
   const date = value instanceof Date ? value : value.toDate();
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(getLocale(language), {
     day: "numeric",
     month: "long",
     year: "numeric"

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import type { CurrentUser } from "../data/mockUser";
 import { useI18n } from "../i18n/I18nContext";
+import type { UserProfile } from "../types/profile";
 import AssistantHeader from "../components/assistant/AssistantHeader";
 import ChatComposer from "../components/assistant/ChatComposer";
 import ChatMessage, { type ChatMessageModel } from "../components/assistant/ChatMessage";
@@ -23,9 +24,11 @@ function getMockTime() {
 }
 
 export default function WayAssistant() {
-  const { currentUser } = useOutletContext<{ currentUser: CurrentUser }>();
+  const { currentUser, profile } = useOutletContext<{ currentUser: CurrentUser; profile: UserProfile | null }>();
   const { t, language } = useI18n();
+  const replyTimer = useRef<number | null>(null);
   const [inputValue, setInputValue] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
   const [messages, setMessages] = useState<ChatMessageModel[]>(() => [
     {
       id: "welcome",
@@ -50,6 +53,14 @@ export default function WayAssistant() {
     );
   }, [currentUser.name, language, t]);
 
+  useEffect(() => {
+    return () => {
+      if (replyTimer.current) {
+        window.clearTimeout(replyTimer.current);
+      }
+    };
+  }, []);
+
   function handlePromptClick(prompt: string) {
     setInputValue(prompt);
   }
@@ -57,7 +68,7 @@ export default function WayAssistant() {
   function handleSubmit() {
     const trimmed = inputValue.trim();
 
-    if (!trimmed) {
+    if (!trimmed || isThinking) {
       return;
     }
 
@@ -71,6 +82,21 @@ export default function WayAssistant() {
       }
     ]);
     setInputValue("");
+    setIsThinking(true);
+
+    replyTimer.current = window.setTimeout(() => {
+      const mode = profile?.mode === "GOAL" ? t("profile.modeGoal") : t("profile.modeExplore");
+      setMessages((current) => [
+        ...current,
+        {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          timestamp: getMockTime(),
+          content: t("assistant.mockReply", { mode })
+        }
+      ]);
+      setIsThinking(false);
+    }, 620);
   }
 
   return (
@@ -82,7 +108,20 @@ export default function WayAssistant() {
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}
+          {isThinking ? (
+            <div className="assistant-thinking" role="status" aria-live="polite">
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <p>{t("assistant.thinking")}</p>
+            </div>
+          ) : null}
         </div>
+
+        <aside className="assistant-context-strip" aria-label={t("assistant.contextLabel")}>
+          <span>{t("assistant.contextMode", { mode: profile?.mode === "GOAL" ? t("profile.modeGoal") : t("profile.modeExplore") })}</span>
+          <span>{t("assistant.contextFocus")}</span>
+        </aside>
 
         <div className="prompt-chip-row" aria-label="Suggested prompts">
           {visiblePrompts.map((prompt) => (
@@ -91,7 +130,7 @@ export default function WayAssistant() {
         </div>
       </div>
 
-      <ChatComposer value={inputValue} onChange={setInputValue} onSubmit={handleSubmit} />
+      <ChatComposer value={inputValue} onChange={setInputValue} onSubmit={handleSubmit} isSending={isThinking} />
     </section>
   );
 }

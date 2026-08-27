@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type MouseEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "../components/app/PageHeader";
 import UserAvatar from "../components/app/UserAvatar";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../i18n/I18nContext";
+import type { TranslationKey } from "../i18n/translations";
 import { getProfileErrorMessage, updateUserProfile } from "../services/profileService";
 import type { ProfileGender } from "../types/profile";
 
@@ -22,14 +23,14 @@ const months = [
   "December"
 ];
 
-const statusOptions = [
-  "High School Student",
-  "University Student",
-  "Self-taught Learner",
-  "Career Switcher",
-  "Junior Developer",
-  "Software Professional",
-  "Other"
+const statusOptions: Array<{ value: string; labelKey: TranslationKey }> = [
+  { value: "high-school-student", labelKey: "profile.statusHighSchool" },
+  { value: "university-student", labelKey: "profile.statusUniversity" },
+  { value: "self-taught-learner", labelKey: "profile.statusSelfTaught" },
+  { value: "career-switcher", labelKey: "profile.statusCareerSwitcher" },
+  { value: "junior-developer", labelKey: "profile.statusJuniorDeveloper" },
+  { value: "software-professional", labelKey: "profile.statusSoftwareProfessional" },
+  { value: "other", labelKey: "profile.statusOther" }
 ];
 
 export default function EditProfile() {
@@ -58,6 +59,42 @@ export default function EditProfile() {
     setGender(profile.gender ?? "female");
     setCurrentStatus(profile.currentStatus ?? "");
   }, [profile]);
+
+  const hasUnsavedChanges = Boolean(
+    profile &&
+      (displayName !== profile.displayName ||
+        birthMonth !== (profile.dateOfBirth?.month ? String(profile.dateOfBirth.month) : "") ||
+        birthDay !== (profile.dateOfBirth?.day ? String(profile.dateOfBirth.day) : "") ||
+        birthYear !== (profile.dateOfBirth?.year ? String(profile.dateOfBirth.year) : "") ||
+        gender !== (profile.gender ?? "female") ||
+        currentStatus !== (profile.currentStatus ?? ""))
+  );
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  function handleCancel(event: MouseEvent<HTMLAnchorElement>) {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+
+    const confirmed = window.confirm(t("profile.unsavedConfirm"));
+
+    if (!confirmed) {
+      event.preventDefault();
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -191,8 +228,8 @@ export default function EditProfile() {
             <select value={currentStatus} onChange={(event) => setCurrentStatus(event.target.value)}>
               <option value="">{t("profile.statusChoose")}</option>
               {statusOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+                <option key={option.value} value={option.value}>
+                  {t(option.labelKey)}
                 </option>
               ))}
             </select>
@@ -205,11 +242,11 @@ export default function EditProfile() {
         </div>
 
         <div className="profile-form-actions">
-          <Link to="/app/profile" className="app-secondary-link">
+          <Link to="/app/profile" className="app-secondary-link" onClick={handleCancel}>
             {t("common.cancel")}
           </Link>
-          <button type="submit" disabled={submitState === "saving"} className="app-primary-link">
-            {submitState === "saving" ? t("common.saving") : t("common.save")}
+          <button type="submit" disabled={submitState === "saving" || !hasUnsavedChanges} className="app-primary-link">
+            {submitState === "saving" ? t("common.saving") : hasUnsavedChanges ? t("common.save") : t("common.noChanges")}
           </button>
         </div>
       </form>
