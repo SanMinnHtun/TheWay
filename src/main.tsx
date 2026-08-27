@@ -31,28 +31,28 @@ createRoot(rootElement).render(
           <Routes>
             <Route path="/" element={<App />} />
 
-          <Route element={<PublicOnlyRoute />}>
-            <Route path="/auth" element={<AuthPage />} />
-          </Route>
-
-          <Route element={<PublicOnlyRoute allowProfileSetup />}>
-            <Route path="/profile-setup" element={<ProfileSetup />} />
-          </Route>
-
-          <Route element={<RequireProfile />}>
-            <Route path="/app" element={<AppShell />}>
-              <Route index element={<Navigate to="/app/assistant" replace />} />
-              <Route path="resources" element={<LearningResources />} />
-              <Route path="explore" element={<ExploreCareers />} />
-              <Route path="roadmap" element={<MyRoadmap />} />
-              <Route path="assistant" element={<WayAssistant />} />
-              <Route path="profile" element={<ProfileDetails />} />
-              <Route path="profile/edit" element={<EditProfile />} />
-              <Route path="settings" element={<Settings />} />
+            <Route element={<PublicOnlyRoute />}>
+              <Route path="/auth" element={<AuthPage />} />
             </Route>
-          </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+            <Route element={<PublicOnlyRoute allowProfileSetup />}>
+              <Route path="/profile-setup" element={<ProfileSetup />} />
+            </Route>
+
+            <Route element={<RequireProfile />}>
+              <Route path="/app" element={<AppShell />}>
+                <Route index element={<Navigate to="/app/explore" replace />} />
+                <Route path="resources" element={<LearningResources />} />
+                <Route path="explore" element={<ExploreCareers />} />
+                <Route path="roadmap" element={<MyRoadmap />} />
+                <Route path="assistant" element={<WayAssistant />} />
+                <Route path="profile" element={<ProfileDetails />} />
+                <Route path="profile/edit" element={<EditProfile />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+            </Route>
+
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </I18nProvider>
