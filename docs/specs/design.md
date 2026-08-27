@@ -35,7 +35,7 @@ Authenticated app routes should live under `/app`:
 - `/app/profile/edit`: Edit profile.
 - `/app/settings`: Settings.
 
-For this phase, `/app/assistant` is the default authenticated destination after profile setup.
+For this phase, `/app/explore` is the default authenticated destination after profile setup.
 
 ## App Shell
 
@@ -61,9 +61,9 @@ Sidebar structure:
 - Collapse control on the right for desktop/tablet.
 - User identity row with circular avatar and display name.
 - Main navigation in this exact order:
-  - Learning Resources.
   - Explore Careers.
   - My Roadmap.
+  - Learning Resources.
   - Way Assistant.
 - Bottom navigation:
   - Settings.
