@@ -12,6 +12,8 @@ export default function Settings() {
   const { language, setLanguage, t } = useI18n();
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
+  const [languageState, setLanguageState] = useState<"idle" | "saving">("idle");
+  const [signOutState, setSignOutState] = useState<"idle" | "signing-out">("idle");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [confirmValue, setConfirmValue] = useState("");
   const [deleteState, setDeleteState] = useState<"idle" | "deleting">("idle");
@@ -20,18 +22,33 @@ export default function Settings() {
   async function handleLanguageChange(nextLanguage: AppLanguage) {
     setError("");
     setFeedback("");
+    setLanguageState("saving");
 
     try {
       await setLanguage(nextLanguage);
       setFeedback(t("settings.languageUpdated"));
     } catch (languageError) {
       setError(getProfileErrorMessage(languageError));
+    } finally {
+      setLanguageState("idle");
     }
   }
 
   async function handleSignOut() {
-    await auth.signOut();
-    navigate("/", { replace: true });
+    if (signOutState === "signing-out") {
+      return;
+    }
+
+    setSignOutState("signing-out");
+    setError("");
+
+    try {
+      await auth.signOut();
+      navigate("/", { replace: true });
+    } catch {
+      setError(t("settings.signOutError"));
+      setSignOutState("idle");
+    }
   }
 
   async function handleDeleteProfile() {
@@ -113,9 +130,11 @@ export default function Settings() {
               <button
                 key={option}
                 type="button"
+                role="radio"
                 className={language === option ? "language-option language-option--active" : "language-option"}
+                disabled={languageState === "saving"}
                 onClick={() => void handleLanguageChange(option)}
-                aria-pressed={language === option}
+                aria-checked={language === option}
               >
                 {option === "en" ? t("settings.english") : t("settings.myanmar")}
               </button>
@@ -129,8 +148,8 @@ export default function Settings() {
             <p>{t("settings.accountDescription")}</p>
           </div>
           <div className="settings-actions">
-            <button type="button" className="app-secondary-link" onClick={() => void handleSignOut()}>
-              {t("sidebar.signOut")}
+            <button type="button" className="app-secondary-link" disabled={signOutState === "signing-out"} onClick={() => void handleSignOut()}>
+              {signOutState === "signing-out" ? t("settings.signingOut") : t("sidebar.signOut")}
             </button>
           </div>
 

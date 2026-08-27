@@ -4,7 +4,7 @@
 
 This spec defines the authenticated main application visual system for The Way. It is the source of truth for app-shell layout, navigation, assistant UI, responsive behavior, motion, and accessibility.
 
-The current implementation phase covers only the authenticated application skeleton and a fully designed Way Assistant frontend. Learning Resources, Explore Careers, My Roadmap, and Settings should exist as polished shells with skeleton placeholders until their product logic is implemented.
+The current implementation phase covers the authenticated application shell, guided preview pages, and a fully designed Way Assistant frontend. Learning Resources, Explore Careers, My Roadmap, and Settings should stay honest about missing backend logic while still giving users clear next-step guidance.
 
 ## Visual Direction
 
@@ -189,33 +189,33 @@ Composer rules:
 - Send button should support hover, pressed, and disabled states.
 - On mobile, account for `safe-area-inset-bottom`.
 
-## Skeleton Pages
+## Guided Preview Pages
 
 Learning Resources:
 
 - Header: `Learning Resources`.
 - Copy: `Curated resources for your roadmap.`
-- Skeleton sections for search/filter, recommended resources, and continue learning.
+- Prioritize resources for the current milestone, simple resource filters, continue-learning items, and saved-resource empty states.
 
 Explore Careers:
 
 - Header: `Explore Careers`.
 - Copy: `Discover career paths that match your interests and strengths.`
-- Skeleton sections for search, recommended careers, and career categories.
+- Prioritize recommended careers, forgiving search across roles, skills, technologies, and categories, concise career cards, and progressive career details.
 
 My Roadmap:
 
 - Header: `My Roadmap`.
 - Copy: `Your personalized path, one milestone at a time.`
-- Skeleton sections for overall progress, current milestone, and roadmap timeline.
+- Show overall progress, current focus, up-next milestones, and full roadmap states using text labels as well as color.
 
 Settings:
 
 - Header: `Settings`.
 - Copy: `Manage your profile, preferences, account, and appearance.`
-- Skeleton tabs or cards for Profile, Preferences, Account, and Appearance.
+- Cards or sections for Profile, Language, Account, and danger-zone actions.
 
-Do not use plain "Coming soon" pages as the primary placeholder pattern.
+Do not use plain "Coming soon" pages as the primary placeholder pattern. Preview content may be static and local, but it must not imply real AI inference, persistence, or generated roadmap/resource data.
 
 ## Responsiveness
 
@@ -300,8 +300,8 @@ Profile and settings screens must preserve the same dark-purple authenticated ap
 Profile details should be readable and uncluttered:
 
 - Profile summary card with avatar, display name, email, and current path.
-- Personal information field rows.
-- Created and updated metadata.
+- Grouped personal information, career preferences, and account metadata.
+- Language preference, created date, and updated date.
 - Clear edit action.
 
 Settings should include cards or sections for:

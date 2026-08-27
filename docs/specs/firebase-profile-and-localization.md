@@ -153,6 +153,7 @@ Profile details should display:
 - Display name.
 - Email.
 - Career path.
+- Language.
 - Date of birth.
 - Gender.
 - Current status.

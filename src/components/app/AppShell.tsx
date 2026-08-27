@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import StarField from "../effects/StarField";
 import { CloseIcon, MenuIcon } from "./AppIcons";
@@ -16,6 +16,8 @@ function getStoredCollapsedState() {
 export default function AppShell() {
   const location = useLocation();
   const auth = useAuth();
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const wasDrawerOpenRef = useRef(false);
   const [isCollapsed, setIsCollapsed] = useState(getStoredCollapsedState);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isAssistantRoute = location.pathname === "/app/assistant";
@@ -32,6 +34,26 @@ export default function AppShell() {
   useEffect(() => {
     setIsDrawerOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isDrawerOpen]);
+
+  useEffect(() => {
+    if (wasDrawerOpenRef.current && !isDrawerOpen) {
+      menuButtonRef.current?.focus();
+    }
+
+    wasDrawerOpenRef.current = isDrawerOpen;
+  }, [isDrawerOpen]);
 
   return (
     <div className={`app-shell ${isCollapsed ? "app-shell--collapsed" : ""}`}>
@@ -55,6 +77,7 @@ export default function AppShell() {
 
       <header className="app-mobile-header">
         <button
+          ref={menuButtonRef}
           type="button"
           className="app-icon-button"
           onClick={() => setIsDrawerOpen(true)}

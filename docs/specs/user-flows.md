@@ -48,10 +48,10 @@ This is the temporary post-profile destination while the full dashboard and asse
 
 1. User completes profile setup.
 2. User lands at `/app/explore`.
-3. User sees the persistent app shell and the Explore Careers skeleton page.
+3. User sees the persistent app shell and a guided Explore Careers preview with search, recommendations, and next-step actions.
 4. User can navigate client-side between Explore Careers, My Roadmap, Learning Resources, Way Assistant, and Settings.
 5. Way Assistant remains available at `/app/assistant` with its mock welcome message, suggested prompts, and message composer.
-6. Non-assistant routes render polished skeleton shells only until their data-backed features are implemented.
+6. Roadmap and resources routes render static guided previews until their data-backed features are implemented.
 
 ## Return User Flow
 

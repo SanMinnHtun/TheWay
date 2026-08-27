@@ -109,6 +109,6 @@ Outputs:
 - Persistent app navigation shell.
 - Active route state with `aria-current="page"`.
 - Fully designed Way Assistant frontend surface.
-- Skeleton shells for resources, careers, roadmap, and settings.
+- Guided preview shells for resources, careers, roadmap, and settings.
 
 The app shell must not require backend data for this phase. It should preserve future integration points without embedding roadmap, resource, or assistant inference logic inside layout components.

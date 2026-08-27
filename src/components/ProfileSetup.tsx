@@ -5,11 +5,13 @@ import astronautImg from "../assets/astronaut.png";
 import StarField from "./effects/StarField";
 import { useAuth } from "../context/AuthContext";
 import { useAuthUser } from "../hooks/useAuthUser";
+import { useI18n } from "../i18n/I18nContext";
 import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
 import type { AuthUser } from "../services/firebaseAuth";
 import { createUserProfile, getProfileErrorMessage } from "../services/profileService";
-import { assessmentTrackLabels, type AssessmentTrack } from "../types/onboarding";
+import type { AssessmentTrack } from "../types/onboarding";
 import { assessmentTrackToMode, type ProfileGender } from "../types/profile";
+import type { TranslationKey } from "../i18n/translations";
 
 const months = [
   "January",
@@ -30,6 +32,16 @@ const inputClass =
   "w-full rounded-lg border border-slate-600 bg-[#1c1d30] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30";
 
 const labelClass = "mb-2 block text-sm font-medium text-slate-200";
+
+const statusOptions: Array<{ value: string; labelKey: TranslationKey }> = [
+  { value: "high-school-student", labelKey: "profile.statusHighSchool" },
+  { value: "university-student", labelKey: "profile.statusUniversity" },
+  { value: "self-taught-learner", labelKey: "profile.statusSelfTaught" },
+  { value: "career-switcher", labelKey: "profile.statusCareerSwitcher" },
+  { value: "junior-developer", labelKey: "profile.statusJuniorDeveloper" },
+  { value: "software-professional", labelKey: "profile.statusSoftwareProfessional" },
+  { value: "other", labelKey: "profile.statusOther" }
+];
 
 interface ProfileSetupLocationState {
   assessmentTrack?: AssessmentTrack;
@@ -78,6 +90,7 @@ export default function ProfileSetup() {
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();
+  const { t } = useI18n();
   const locationState = location.state as ProfileSetupLocationState | null;
   const authUserState = useAuthUser();
   const routeAuthUser = locationState?.authUser;
@@ -113,7 +126,7 @@ export default function ProfileSetup() {
     const activeUser = auth.user ?? authUser;
 
     if (!activeUser) {
-      setFormError("Please sign in with Google before creating your profile.");
+      setFormError(t("profileSetup.errorSignIn"));
       return;
     }
 
@@ -122,12 +135,12 @@ export default function ProfileSetup() {
     const month = months.findIndex((candidate) => candidate === formData.birthMonth) + 1;
 
     if (!formData.name.trim()) {
-      setFormError("Enter your name to continue.");
+      setFormError(t("profileSetup.errorName"));
       return;
     }
 
     if (!month || !day || !year) {
-      setFormError("Enter a complete date of birth to continue.");
+      setFormError(t("profileSetup.errorDob"));
       return;
     }
 
@@ -231,17 +244,17 @@ export default function ProfileSetup() {
         >
           <div className="max-w-md">
             <h1 className="profile-title text-4xl font-bold leading-tight text-white sm:text-5xl">
-              Ready to Get Started?
+              {t("profileSetup.title")}
             </h1>
             <p className="profile-copy mt-4 text-base leading-7 text-slate-300">
-              Enter your details on the right to claim your space and start exploring.
+              {t("profileSetup.copy")}
             </p>
           </div>
 
           <div className="astronaut-frame mt-8 w-full max-w-[360px] md:max-w-[430px]">
             <img
               src={astronautImg}
-              alt="Astronaut"
+              alt=""
               className="h-auto w-full object-contain"
             />
           </div>
@@ -249,7 +262,7 @@ export default function ProfileSetup() {
 
         <section className="profile-form-card w-full rounded-2xl border border-slate-700/50 bg-[#121324]/80 p-6 shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white">Create your profile</h2>
+            <h2 className="text-2xl font-semibold text-white">{t("profileSetup.formTitle")}</h2>
 
             <div className="profile-identity mt-6 flex items-center gap-4">
               {authUser?.photoURL ? (
@@ -264,8 +277,8 @@ export default function ProfileSetup() {
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium text-white">{authUser?.name || "The Way learner"}</p>
-                <p className="text-sm text-slate-400">{authUser?.email || "Signed in with Google"}</p>
+                <p className="text-sm font-medium text-white">{authUser?.name || t("profile.learner")}</p>
+                <p className="text-sm text-slate-400">{authUser?.email || t("profileSetup.signedInGoogle")}</p>
               </div>
             </div>
           </div>
@@ -273,7 +286,7 @@ export default function ProfileSetup() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="profile-field" style={{ "--field-index": 0 } as CSSProperties}>
               <label className={labelClass} htmlFor="profile-name">
-                Name
+                {t("profile.name")}
               </label>
               <input
                 id="profile-name"
@@ -281,20 +294,20 @@ export default function ProfileSetup() {
                 value={formData.name}
                 onChange={(event) => updateField("name", event.target.value)}
                 className={inputClass}
-                placeholder="Enter your full name"
+                placeholder={t("profileSetup.namePlaceholder")}
               />
             </div>
 
             <div className="profile-field" style={{ "--field-index": 1 } as CSSProperties}>
-              <span className={labelClass}>Date Of Birth</span>
+              <span className={labelClass}>{t("profile.dateOfBirth")}</span>
               <div className="grid grid-cols-3 gap-3">
                 <select
-                  aria-label="Birth month"
+                  aria-label={t("profileSetup.birthMonthAria")}
                   value={formData.birthMonth}
                   onChange={(event) => updateField("birthMonth", event.target.value)}
                   className={inputClass}
                 >
-                  <option value="">Months</option>
+                  <option value="">{t("profile.birthMonth")}</option>
                   {months.map((month) => (
                     <option key={month} value={month}>
                       {month}
@@ -302,41 +315,41 @@ export default function ProfileSetup() {
                   ))}
                 </select>
                 <input
-                  aria-label="Birth date"
+                  aria-label={t("profileSetup.birthDateAria")}
                   type="number"
                   min="1"
                   max="31"
                   value={formData.birthDate}
                   onChange={(event) => updateField("birthDate", event.target.value)}
                   className={inputClass}
-                  placeholder="Date"
+                  placeholder={t("profile.birthDay")}
                 />
                 <input
-                  aria-label="Birth year"
+                  aria-label={t("profileSetup.birthYearAria")}
                   type="number"
                   min="1900"
                   value={formData.birthYear}
                   onChange={(event) => updateField("birthYear", event.target.value)}
                   className={inputClass}
-                  placeholder="Year"
+                  placeholder={t("profile.birthYear")}
                 />
               </div>
             </div>
 
             <fieldset className="profile-field" style={{ "--field-index": 2 } as CSSProperties}>
-              <legend className={labelClass}>Gender</legend>
+              <legend className={labelClass}>{t("profile.gender")}</legend>
               <div className="flex flex-wrap gap-5">
-                {["Male", "Female", "Other"].map((gender) => (
+                {(["male", "female", "other"] as ProfileGender[]).map((gender) => (
                   <label key={gender} className="profile-radio-option flex items-center gap-2 text-sm text-slate-200">
                     <input
                       type="radio"
                       name="gender"
-                      value={gender.toLowerCase()}
-                      checked={formData.gender === gender.toLowerCase()}
+                      value={gender}
+                      checked={formData.gender === gender}
                       onChange={(event) => updateField("gender", event.target.value)}
                       className="profile-radio h-4 w-4 accent-purple-600"
                     />
-                    {gender}
+                    {gender === "male" ? t("profile.genderMale") : gender === "female" ? t("profile.genderFemale") : t("profile.genderOther")}
                   </label>
                 ))}
               </div>
@@ -344,7 +357,7 @@ export default function ProfileSetup() {
 
             <div className="profile-field" style={{ "--field-index": 3 } as CSSProperties}>
               <label className={labelClass} htmlFor="profile-current-status">
-                Current Status
+                {t("profile.currentStatus")}
               </label>
               <select
                 id="profile-current-status"
@@ -352,24 +365,24 @@ export default function ProfileSetup() {
                 onChange={(event) => updateField("currentStatus", event.target.value)}
                 className={inputClass}
               >
-                <option value="">Choose your current status</option>
-                <option value="high-school-student">High School Student</option>
-                <option value="university-student">University Student</option>
-                <option value="self-taught-learner">Self-taught Learner</option>
-                <option value="career-switcher">Career Switcher</option>
-                <option value="junior-developer">Junior Developer</option>
-                <option value="software-professional">Software Professional</option>
-                <option value="other">Other</option>
+                <option value="">{t("profile.statusChoose")}</option>
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {t(option.labelKey)}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="profile-field" style={{ "--field-index": 4 } as CSSProperties}>
-              <span className={labelClass}>Selected Path</span>
+              <span className={labelClass}>{t("profileSetup.selectedPath")}</span>
               <div className="selected-path-panel rounded-lg border border-purple-300/25 bg-purple-500/10 px-4 py-3">
                 <span aria-hidden="true">✓</span>
-                <p className="text-sm font-medium text-white">{assessmentTrackLabels[formData.assessmentTrack]}</p>
+                <p className="text-sm font-medium text-white">
+                  {formData.assessmentTrack === "goal-focused" ? t("profile.modeGoal") : t("profile.modeExplore")}
+                </p>
                 <p className="mt-1 text-xs leading-5 text-slate-400">
-                  This came from your landing page choice and will start the right assessment.
+                  {t("profileSetup.selectedPathDescription")}
                 </p>
               </div>
             </div>
@@ -388,7 +401,13 @@ export default function ProfileSetup() {
               className="profile-submit profile-field w-full rounded-xl bg-purple-600 py-3 font-medium text-white transition hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#121324]"
               style={{ "--field-index": 5 } as CSSProperties}
             >
-              <span>{submitState === "ready" ? "Profile ready" : submitState === "creating" ? "Creating profile..." : "Create Profile & Continue"}</span>
+              <span>
+                {submitState === "ready"
+                  ? t("profileSetup.ready")
+                  : submitState === "creating"
+                    ? t("profileSetup.creating")
+                    : t("profileSetup.submit")}
+              </span>
               <span aria-hidden="true">{submitState === "ready" ? "✓" : "→"}</span>
             </button>
           </form>
