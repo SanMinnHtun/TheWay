@@ -122,7 +122,7 @@ service cloud.firestore {
         && (data.currentStageId == null || data.currentStageId is string)
         && data.completedSkillIds is list
         && data.savedResourceIds is list
-        && (!("startedAt" in data) || data.startedAt == request.time || data.startedAt == resource.data.startedAt)
+        && (!("startedAt" in data) || data.startedAt is timestamp)
         && data.updatedAt == request.time;
     }
 
@@ -130,12 +130,30 @@ service cloud.firestore {
       allow read: if ownsProfile(userId);
 
       allow create: if ownsProfile(userId)
-        && hasValidLearningProgressShape(request.resource.data, userId);
+        && hasValidLearningProgressShape(request.resource.data, userId)
+        && (!("startedAt" in request.resource.data) || request.resource.data.startedAt == request.time);
 
       allow update: if ownsProfile(userId)
         && hasValidLearningProgressShape(request.resource.data, userId)
         && request.resource.data.uid == resource.data.uid
-        && (!("startedAt" in resource.data) || request.resource.data.startedAt == resource.data.startedAt);
+        && (
+          (
+            !("startedAt" in resource.data)
+            && (
+              !("startedAt" in request.resource.data)
+              || request.resource.data.startedAt == request.time
+            )
+          )
+          || (
+            "startedAt" in resource.data
+            && request.resource.data.startedAt == resource.data.startedAt
+          )
+          || (
+            "startedAt" in resource.data
+            && request.resource.data.roadmapId != resource.data.roadmapId
+            && request.resource.data.startedAt == request.time
+          )
+        );
 
       allow delete: if ownsProfile(userId);
     }
