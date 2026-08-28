@@ -9,6 +9,7 @@ import {
 } from "@firebase/firestore/lite";
 import { getFirebaseDb } from "../lib/firebase";
 import type { CreateProfileInput, UpdateProfileInput, UserProfile } from "../types/profile";
+import { deleteUserLearningState } from "./learningProgressService";
 
 function profileRef(uid: string) {
   return doc(getFirebaseDb(), "users", uid);
@@ -72,6 +73,7 @@ export async function updateUserProfile(uid: string, input: UpdateProfileInput):
 }
 
 export async function deleteUserProfile(uid: string): Promise<void> {
+  await deleteUserLearningState(uid);
   await deleteDoc(profileRef(uid));
 }
 

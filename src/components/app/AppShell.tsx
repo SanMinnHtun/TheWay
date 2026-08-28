@@ -4,6 +4,7 @@ import StarField from "../effects/StarField";
 import { CloseIcon, MenuIcon } from "./AppIcons";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../context/AuthContext";
+import { LearningExperienceProvider } from "../../context/LearningExperienceContext";
 
 function getStoredCollapsedState() {
   if (typeof window === "undefined") {
@@ -21,6 +22,15 @@ export default function AppShell() {
   const [isCollapsed, setIsCollapsed] = useState(getStoredCollapsedState);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isAssistantRoute = location.pathname === "/app/assistant";
+  const starIntensity = isAssistantRoute
+    ? 0.62
+    : location.pathname.startsWith("/app/resources")
+      ? 0.15
+      : location.pathname.startsWith("/app/roadmap")
+        ? 0.2
+        : location.pathname.startsWith("/app/explore")
+          ? 0.25
+          : 0.22;
   const currentUser = {
     name: auth.profile?.displayName || auth.user?.name || "TheWay learner",
     email: auth.profile?.email || auth.user?.email || "",
@@ -56,11 +66,12 @@ export default function AppShell() {
   }, [isDrawerOpen]);
 
   return (
-    <div className={`app-shell ${isCollapsed ? "app-shell--collapsed" : ""}`}>
+    <LearningExperienceProvider>
+      <div className={`app-shell ${isCollapsed ? "app-shell--collapsed" : ""}`}>
       <StarField
         className="app-star-field"
         density={isAssistantRoute ? 0.76 : 0.36}
-        intensity={isAssistantRoute ? 0.62 : 0.28}
+        intensity={starIntensity}
         speed={isAssistantRoute ? 0.42 : 0.24}
       />
       <div className="app-glow app-glow-left" aria-hidden="true" />
@@ -117,6 +128,7 @@ export default function AppShell() {
       <main className="app-main" key={location.pathname}>
         <Outlet context={{ currentUser, profile: auth.profile }} />
       </main>
-    </div>
+      </div>
+    </LearningExperienceProvider>
   );
 }

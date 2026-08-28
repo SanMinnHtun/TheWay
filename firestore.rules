@@ -90,5 +90,54 @@ service cloud.firestore {
 
       allow delete: if ownsProfile(userId);
     }
+
+    function learningProgressKeys() {
+      return [
+        "uid",
+        "selectedCareerId",
+        "roadmapId",
+        "currentStageId",
+        "completedSkillIds",
+        "savedResourceIds",
+        "startedAt",
+        "updatedAt"
+      ];
+    }
+
+    function hasValidLearningProgressShape(data, userId) {
+      return data.keys().hasOnly(learningProgressKeys())
+        && data.keys().hasAll([
+          "uid",
+          "selectedCareerId",
+          "roadmapId",
+          "currentStageId",
+          "completedSkillIds",
+          "savedResourceIds",
+          "updatedAt"
+        ])
+        && data.uid == userId
+        && data.uid is string
+        && (data.selectedCareerId == null || data.selectedCareerId is string)
+        && (data.roadmapId == null || data.roadmapId is string)
+        && (data.currentStageId == null || data.currentStageId is string)
+        && data.completedSkillIds is list
+        && data.savedResourceIds is list
+        && (!("startedAt" in data) || data.startedAt == request.time || data.startedAt == resource.data.startedAt)
+        && data.updatedAt == request.time;
+    }
+
+    match /learningProgress/{userId} {
+      allow read: if ownsProfile(userId);
+
+      allow create: if ownsProfile(userId)
+        && hasValidLearningProgressShape(request.resource.data, userId);
+
+      allow update: if ownsProfile(userId)
+        && hasValidLearningProgressShape(request.resource.data, userId)
+        && request.resource.data.uid == resource.data.uid
+        && (!("startedAt" in resource.data) || request.resource.data.startedAt == resource.data.startedAt);
+
+      allow delete: if ownsProfile(userId);
+    }
   }
 }
