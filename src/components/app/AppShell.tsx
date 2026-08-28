@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import StarField from "../effects/StarField";
 import { CloseIcon, MenuIcon } from "./AppIcons";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../context/AuthContext";
 import { LearningExperienceProvider } from "../../context/LearningExperienceContext";
+import LearningPageSkeleton from "../learning/LearningPageSkeleton";
 
 function getStoredCollapsedState() {
   if (typeof window === "undefined") {
@@ -126,7 +127,9 @@ export default function AppShell() {
       </div>
 
       <main className="app-main" key={location.pathname}>
-        <Outlet context={{ currentUser, profile: auth.profile }} />
+        <Suspense fallback={<LearningPageSkeleton cards={4} />}>
+          <Outlet context={{ currentUser, profile: auth.profile }} />
+        </Suspense>
       </main>
       </div>
     </LearningExperienceProvider>

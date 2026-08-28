@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getRoadmapById } from "../data/learningCatalog";
 import { useAuth } from "./AuthContext";
 import {
   getLearningProgressErrorMessage,
@@ -46,7 +45,8 @@ function persistable(state: UserLearningState): PersistedLearningState {
   };
 }
 
-function findCurrentStageId(roadmapId: string | null, completedSkillIds: string[]) {
+async function findCurrentStageId(roadmapId: string | null, completedSkillIds: string[]) {
+  const { getRoadmapById } = await import("../data/learningCatalog");
   const roadmap = getRoadmapById(roadmapId);
 
   if (!roadmap) {
@@ -146,7 +146,7 @@ export function LearningExperienceProvider({ children }: { children: ReactNode }
       const nextState: UserLearningState = {
         ...state,
         completedSkillIds,
-        currentStageId: findCurrentStageId(state.roadmapId, completedSkillIds),
+        currentStageId: await findCurrentStageId(state.roadmapId, completedSkillIds),
         updatedAt: now
       };
 
