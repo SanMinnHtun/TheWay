@@ -1,3 +1,5 @@
+import { learningEn, learningMy } from "./learningTranslations";
+
 export const en = {
   "common.cancel": "Cancel",
   "common.delete": "Delete",
@@ -182,7 +184,8 @@ export const en = {
   "settings.confirmPlaceholder": "Type DELETE",
   "settings.deleting": "Deleting...",
   "errors.profileLoad": "We couldn't load your profile.",
-  "errors.firebaseUnconfigured": "Firebase is not configured yet."
+  "errors.firebaseUnconfigured": "Firebase is not configured yet.",
+  ...learningEn
 } as const;
 
 export const my: Record<keyof typeof en, string> = {
@@ -369,7 +372,8 @@ export const my: Record<keyof typeof en, string> = {
   "settings.confirmPlaceholder": "DELETE ဟု ရိုက်ပါ",
   "settings.deleting": "ဖျက်နေသည်...",
   "errors.profileLoad": "သင့်ပရိုဖိုင်ကို မဖွင့်နိုင်ပါ။",
-  "errors.firebaseUnconfigured": "Firebase ကို မသတ်မှတ်ရသေးပါ။"
+  "errors.firebaseUnconfigured": "Firebase ကို မသတ်မှတ်ရသေးပါ။",
+  ...learningMy
 };
 
 export const translations = {
