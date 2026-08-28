@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 import type { CurrentUser } from "../data/mockUser";
 import { useI18n } from "../i18n/I18nContext";
 import type { UserProfile } from "../types/profile";
@@ -26,6 +26,7 @@ function getMockTime() {
 export default function WayAssistant() {
   const { currentUser, profile } = useOutletContext<{ currentUser: CurrentUser; profile: UserProfile | null }>();
   const { t, language } = useI18n();
+  const [searchParams, setSearchParams] = useSearchParams();
   const replyTimer = useRef<number | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -52,6 +53,21 @@ export default function WayAssistant() {
       )
     );
   }, [currentUser.name, language, t]);
+
+  useEffect(() => {
+    const prompt = searchParams.get("prompt")?.trim();
+
+    if (!prompt) {
+      return;
+    }
+
+    setInputValue(prompt);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("prompt");
+      return next;
+    }, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     return () => {
