@@ -1,5 +1,5 @@
- #TheWay
-4th year end project
+TheWay
+4th year project
 
 ## Firebase Setup
 
