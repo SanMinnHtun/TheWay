@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import CareerCard from "../components/learning/CareerCard";
 import LearningPageSkeleton from "../components/learning/LearningPageSkeleton";
 import SectionHeading from "../components/learning/SectionHeading";
@@ -19,6 +19,7 @@ import type { UserProfile } from "../types/profile";
 
 export default function ExploreCareers() {
   const { t, language } = useI18n();
+  const navigate = useNavigate();
   const { profile } = useOutletContext<{ profile: UserProfile | null }>();
   const learning = useLearningExperience();
   const [query, setQuery] = useState("");
@@ -61,6 +62,38 @@ export default function ExploreCareers() {
   return (
     <section className="app-page-shell learning-page-shell">
       <PageHeader title={t("careers.title")} description={t("careers.headerDescription")} />
+      <section className="career-track-grid" aria-label={t("careers.trackOptions")}>
+        <article className="career-track-card">
+          <h2>{t("careers.exploreCardTitle")}</h2>
+          <p>{t("careers.exploreCardDescription")}</p>
+          <ul>
+            <li><span aria-hidden="true">✓</span>{t("careers.exploreBenefitCareers")}</li>
+            <li><span aria-hidden="true">✓</span>{t("careers.exploreBenefitWork")}</li>
+            <li><span aria-hidden="true">✓</span>{t("careers.exploreBenefitSkills")}</li>
+          </ul>
+          <button
+            type="button"
+            className="career-track-action"
+            onClick={() => navigate("/app/assessment/explore")}
+          >
+            {t("careers.exploreCardAction")} <span aria-hidden="true">→</span>
+          </button>
+        </article>
+
+        <article className="career-track-card">
+          <h2>{t("careers.goalCardTitle")}</h2>
+          <p>{t("careers.goalCardDescription")}</p>
+          <ul>
+            <li><span aria-hidden="true">✓</span>{t("careers.goalBenefitPlan")}</li>
+            <li><span aria-hidden="true">✓</span>{t("careers.goalBenefitGuidance")}</li>
+            <li><span aria-hidden="true">✓</span>{t("careers.goalBenefitSkills")}</li>
+          </ul>
+          <Link className="career-track-action" to={`/app/explore/${targetCareer.id}`}>
+            {t("careers.goalCardAction")} <span aria-hidden="true">→</span>
+          </Link>
+        </article>
+      </section>
+
       <div className="page-context-badge">
         {mode === "GOAL" ? t("careers.trackGoal") : t("careers.trackExplore")}
       </div>

@@ -9,6 +9,7 @@ interface FirebaseConfig {
   appId: string;
   storageBucket?: string;
   messagingSenderId?: string;
+  measurementId?: string;
 }
 
 let firebaseApp: FirebaseApp | null = null;
@@ -22,7 +23,8 @@ function readFirebaseConfig(): FirebaseConfig {
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefined,
     appId: import.meta.env.VITE_FIREBASE_APP_ID as string | undefined,
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string | undefined,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string | undefined
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string | undefined,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string | undefined
   };
 
   const missingKeys = Object.entries({
@@ -44,7 +46,8 @@ function readFirebaseConfig(): FirebaseConfig {
     projectId: config.projectId as string,
     appId: config.appId as string,
     storageBucket: config.storageBucket,
-    messagingSenderId: config.messagingSenderId
+    messagingSenderId: config.messagingSenderId,
+    measurementId: config.measurementId
   };
 }
 
