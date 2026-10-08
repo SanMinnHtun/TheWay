@@ -13,9 +13,11 @@ import "./index.css";
 const CareerDetail = lazy(() => import("./pages/CareerDetail"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const ExploreCareers = lazy(() => import("./pages/ExploreCareers"));
+const ExplorationQuiz = lazy(() => import("./pages/ExplorationQuiz"));
 const GuideDetail = lazy(() => import("./pages/GuideDetail"));
 const InterviewQuestionDetail = lazy(() => import("./pages/InterviewQuestionDetail"));
 const LearningResources = lazy(() => import("./pages/LearningResources"));
+const Model2QuizCard = lazy(() => import("./components/Model2QuizCard"));
 const MyRoadmap = lazy(() => import("./pages/MyRoadmap"));
 const ProfileDetails = lazy(() => import("./pages/ProfileDetails"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
@@ -51,6 +53,8 @@ createRoot(rootElement).render(
                 <Route path="resources/projects/:projectSlug" element={<ProjectDetail />} />
                 <Route path="resources/guides/:guideSlug" element={<GuideDetail />} />
                 <Route path="resources/interview/:questionSlug" element={<InterviewQuestionDetail />} />
+                <Route path="assessment/explore" element={<ExplorationQuiz />} />
+                <Route path="assessment/goal" element={<Model2QuizCard />} />
                 <Route path="explore" element={<ExploreCareers />} />
                 <Route path="explore/:careerSlug" element={<CareerDetail />} />
                 <Route path="roadmap" element={<MyRoadmap />} />

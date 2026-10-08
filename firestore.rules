@@ -91,6 +91,27 @@ service cloud.firestore {
       allow delete: if ownsProfile(userId);
     }
 
+    match /users/{userId}/saved_data/{documentId} {
+      allow read: if ownsProfile(userId) && documentId == "roadmap";
+
+      allow create, update: if ownsProfile(userId)
+        && documentId == "roadmap"
+        && request.resource.data.keys().hasOnly([
+          "roleTitle",
+          "matchPercentage",
+          "stages",
+          "lastSaved",
+          "updatedAt"
+        ])
+        && request.resource.data.roleTitle is string
+        && (request.resource.data.matchPercentage is int || request.resource.data.matchPercentage is float)
+        && request.resource.data.stages is list
+        && request.resource.data.lastSaved is string
+        && request.resource.data.updatedAt is string;
+
+      allow delete: if ownsProfile(userId) && documentId == "roadmap";
+    }
+
     function learningProgressKeys() {
       return [
         "uid",

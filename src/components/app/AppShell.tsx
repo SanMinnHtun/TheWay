@@ -6,6 +6,8 @@ import Sidebar from "./Sidebar";
 import { useAuth } from "../../context/AuthContext";
 import { LearningExperienceProvider } from "../../context/LearningExperienceContext";
 import LearningPageSkeleton from "../learning/LearningPageSkeleton";
+import { CareerRoadmapProvider } from "../../context/CareerRoadmapContext";
+import { PredictedRoadmapModal } from "../learning/PredictedCareerRoadmap";
 
 function getStoredCollapsedState() {
   if (typeof window === "undefined") {
@@ -68,6 +70,7 @@ export default function AppShell() {
 
   return (
     <LearningExperienceProvider>
+      <CareerRoadmapProvider>
       <div className={`app-shell ${isCollapsed ? "app-shell--collapsed" : ""}`}>
       <StarField
         className="app-star-field"
@@ -132,6 +135,8 @@ export default function AppShell() {
         </Suspense>
       </main>
       </div>
+      <PredictedRoadmapModal />
+      </CareerRoadmapProvider>
     </LearningExperienceProvider>
   );
 }

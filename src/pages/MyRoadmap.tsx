@@ -14,6 +14,8 @@ import { Checkbox } from "../components/ui/checkbox";
 import { Progress } from "../components/ui/progress";
 import { Separator } from "../components/ui/separator";
 import { useLearningExperience } from "../context/LearningExperienceContext";
+import { useCareerRoadmap } from "../context/CareerRoadmapContext";
+import { PredictedRoadmapContent } from "../components/learning/PredictedCareerRoadmap";
 import {
   getCareerById,
   getResourceById,
@@ -145,6 +147,7 @@ function getStageState(stage: RoadmapStage, currentStageId: string | null, compl
 export default function MyRoadmap() {
   const { language, t } = useI18n();
   const learning = useLearningExperience();
+  const careerRoadmap = useCareerRoadmap();
   const [pendingSkillId, setPendingSkillId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; tone: "success" | "error" } | null>(null);
   const dismissToast = useCallback(() => setToast(null), []);
@@ -166,13 +169,26 @@ export default function MyRoadmap() {
   }, [allSkills, currentSkill, roadmap]);
 
   useEffect(() => {
+    void careerRoadmap.refreshSavedRoadmap();
+  }, [careerRoadmap.refreshSavedRoadmap]);
+
+  useEffect(() => {
     const skillId = window.location.hash.slice(1);
     if (!skillId) return;
     window.requestAnimationFrame(() => document.getElementById(skillId)?.scrollIntoView({ behavior: "smooth", block: "center" }));
   }, [roadmap?.id]);
 
-  if (learning.loading) {
+  if (learning.loading || careerRoadmap.isLoadingRoadmap) {
     return <LearningPageSkeleton cards={4} />;
+  }
+
+  if (careerRoadmap.savedRoadmap) {
+    return (
+      <section className="app-page-shell learning-page-shell roadmap-page">
+        <PageHeader title={t("roadmap.title")} description={t("roadmap.description")} />
+        <PredictedRoadmapContent savedOnly />
+      </section>
+    );
   }
 
   if (!roadmap || !career || !learning.state?.roadmapId) {
