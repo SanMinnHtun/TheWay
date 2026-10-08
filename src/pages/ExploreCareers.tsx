@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import CareerCard from "../components/learning/CareerCard";
 import LearningPageSkeleton from "../components/learning/LearningPageSkeleton";
 import SectionHeading from "../components/learning/SectionHeading";
@@ -88,9 +88,9 @@ export default function ExploreCareers() {
             <li><span aria-hidden="true">✓</span>{t("careers.goalBenefitGuidance")}</li>
             <li><span aria-hidden="true">✓</span>{t("careers.goalBenefitSkills")}</li>
           </ul>
-          <Link className="career-track-action" to={`/app/explore/${targetCareer.id}`}>
+          <button type="button" className="career-track-action" onClick={() => navigate("/app/assessment/goal")}>
             {t("careers.goalCardAction")} <span aria-hidden="true">→</span>
-          </Link>
+          </button>
         </article>
       </section>
 

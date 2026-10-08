@@ -37,6 +37,7 @@ Used for `I Know My Goal`.
 2. Identify a target developer role.
 3. Calculate confidence and skill gaps.
 4. Generate a role-specific roadmap and resources.
+5. Keep probability-ranked tracks and the active role in app-wide state. `Open Your Roadmap` opens an interactive modal, while the sidebar route shows the same roadmap as a full page with a selector for other predicted roles.
 
 ## Dashboard Flow
 
@@ -49,11 +50,12 @@ This is the temporary post-profile destination while the full dashboard and asse
 1. User completes profile setup.
 2. User lands at `/app/explore`.
 3. User sees the persistent app shell and a guided Explore Careers preview with search, recommendations, and next-step actions.
-4. `Start Exploring` opens the 11-question exploration assessment. Each answer advances automatically; users can go back to revise answers, and the final answer is submitted to the configured `/quiz/submit` API.
-5. `Build My Roadmap` opens the recommended career details, where the user can start its roadmap.
-6. User can navigate client-side between Explore Careers, My Roadmap, Learning Resources, Way Assistant, and Settings.
-7. Way Assistant remains available at `/app/assistant` with its mock welcome message, suggested prompts, and message composer.
-8. Roadmap and resources routes render guided previews until their data-backed features are implemented.
+4. `Start Exploring` opens the 11-question exploration assessment. Each answer advances automatically; users can go back to revise answers, and the final answer is submitted to the configured `/quiz/submit` API. Show the loading animation until the API responds, then display the ranked career matches and a scrollable side sheet for all scores.
+5. From the result page, the learner can start the local catalog roadmap corresponding to a recognized top career match.
+6. `Build My Roadmap` opens the 10-question experienced learner assessment at `/app/assessment/goal`. Answers are 10 integers from 0 to 4; changing English/Myanmar labels never changes the submitted values. On success, show the predicted role, confidence, all nine sorted probabilities, a roadmap modal action, and a retake action.
+7. User can navigate client-side between Explore Careers, My Roadmap, Learning Resources, Way Assistant, and Settings.
+8. Way Assistant remains available at `/app/assistant` with its mock welcome message, suggested prompts, and message composer.
+9. A Model 2 result opens the highest percentage role's editable roadmap. My Roadmap checks the user's Firestore roadmap first and displays it when present; otherwise it uses the current top-match roadmap, then falls back to the existing selected catalog roadmap. Roadmap edits sync to Firestore and keep a LocalStorage fallback.
 
 ## Return User Flow
 

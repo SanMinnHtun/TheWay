@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import loadingVideo from "../assets/model1-loading.mp4";
+import loadingPoster from "../assets/model1-loading-poster.jpg";
 import { buildExplorationSubmission, explorationQuestions } from "../data/explorationQuiz";
 import { Button } from "../components/ui/button";
+import ExplorationResult from "../components/learning/ExplorationResult";
 import { useI18n } from "../i18n/I18nContext";
 import { submitExplorationQuiz } from "../services/explorationQuiz";
 
 export default function ExplorationQuiz() {
-  const { language, t } = useI18n();
+  const { language } = useI18n();
   const navigate = useNavigate();
   const [displayLanguage, setDisplayLanguage] = useState<"en" | "my">(language);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Array<number | null>>(() => Array(explorationQuestions.length).fill(null));
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState<unknown>(null);
   const [error, setError] = useState("");
   const advanceTimer = useRef<number | null>(null);
   const currentQuestion = explorationQuestions[questionIndex];
@@ -25,7 +30,10 @@ export default function ExplorationQuiz() {
         back: "နောက်သို့",
         submit: "မေးခွန်းလွှာပေးပို့ရန်",
         submitting: "ပေးပို့နေသည်...",
-        error: "သင့်အဖြေများကို မပေးပို့နိုင်ပါ။ အင်တာနက်ချိတ်ဆက်မှုစစ်ပြီး ထပ်စမ်းပါ။"
+        error: "သင့်အဖြေများကို မပေးပို့နိုင်ပါ။ အင်တာနက်ချိတ်ဆက်မှုစစ်ပြီး ထပ်စမ်းပါ။",
+        analyzing: "သင့်အဖြေများကို ခွဲခြမ်းစိတ်ဖြာနေသည်",
+        waiting: "သင့်အလုပ်အကိုင်အကဲဖြတ်မှုကို ပြင်ဆင်နေပါသည်။",
+        returnToExplore: "အလုပ်အကိုင်ရှာဖွေရေးသို့ ပြန်ရန်"
       }
     : {
         eyebrow: "Career exploration",
@@ -33,13 +41,24 @@ export default function ExplorationQuiz() {
         back: "Back",
         submit: "Submit Quiz",
         submitting: "Submitting...",
-        error: "We couldn't submit your answers. Check your connection and try again."
+        error: "We couldn't submit your answers. Check your connection and try again.",
+        analyzing: "Analyzing your answers",
+        waiting: "The Way is preparing your career assessment.",
+        returnToExplore: "Return to Explore Careers"
       };
 
   useEffect(() => () => {
     if (advanceTimer.current !== null) {
       window.clearTimeout(advanceTimer.current);
     }
+  }, []);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(preference.matches);
+    updatePreference();
+    preference.addEventListener("change", updatePreference);
+    return () => preference.removeEventListener("change", updatePreference);
   }, []);
 
   function chooseOption(optionIndex: number) {
@@ -73,29 +92,51 @@ export default function ExplorationQuiz() {
       return;
     }
 
+    const loadingStartedAt = Date.now();
+    const minimumLoadingDuration = 4000;
     setSubmitting(true);
     setError("");
 
     try {
-      await submitExplorationQuiz(buildExplorationSubmission(answers));
+      const nextResult = await submitExplorationQuiz(buildExplorationSubmission(answers));
+      setResult(nextResult);
       setSubmitted(true);
     } catch {
       setError(displayCopy.error);
     } finally {
+      const remainingLoadingTime = minimumLoadingDuration - (Date.now() - loadingStartedAt);
+      if (remainingLoadingTime > 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, remainingLoadingTime));
+      }
       setSubmitting(false);
     }
   }
 
   return (
     <section className="app-page-shell learning-page-shell exploration-quiz-page" aria-live="polite">
-      {submitted ? (
+      {submitting ? (
+        <div className="exploration-quiz-loading" role="status" aria-live="polite">
+          <video
+            className="exploration-quiz-loading-video"
+            src={loadingVideo}
+            poster={loadingPoster}
+            autoPlay={!prefersReducedMotion}
+            loop={!prefersReducedMotion}
+            muted
+            playsInline
+            aria-hidden="true"
+          />
+          <h1>{displayCopy.analyzing}</h1>
+          <p>{displayCopy.waiting}</p>
+        </div>
+      ) : submitted ? (
         <div className="exploration-quiz-success">
-          <span className="exploration-quiz-success-mark" aria-hidden="true">✓</span>
-          <p className="exploration-quiz-eyebrow">{t("explorationQuiz.eyebrow")}</p>
-          <h1>{t("explorationQuiz.successTitle")}</h1>
-          <p className="exploration-quiz-success-copy">{t("explorationQuiz.successDescription")}</p>
+          <ExplorationResult
+            result={result}
+            language={displayLanguage}
+          />
           <Button type="button" onClick={() => navigate("/app/explore")}>
-            {t("explorationQuiz.return")}
+            {displayCopy.returnToExplore}
           </Button>
         </div>
       ) : (

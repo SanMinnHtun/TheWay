@@ -70,6 +70,25 @@ Rules:
 - A roadmap must reference the assessment result that produced it.
 - Roadmap stages should be ordered and measurable.
 
+## Personalized Model 2 Roadmap
+
+Stores the user's editable top-match roadmap.
+
+Fields:
+
+- `roleTitle`
+- `matchPercentage`
+- `stages` (including editable skills and their statuses)
+- `lastSaved`
+- `updatedAt`
+
+Rules:
+
+- Store one personalized roadmap per user at `users/{uid}/saved_data/roadmap`.
+- Generate its initial role from the highest Model 2 probability.
+- Read Firestore before the local cache; keep a LocalStorage fallback for offline or unauthenticated use.
+- Roadmap edits sync to the user's document and may be overwritten only by that same user's changes.
+
 ## LearningResource
 
 Stores curated learning material mapped to roadmap stages.

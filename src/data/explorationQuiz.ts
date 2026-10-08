@@ -146,3 +146,22 @@ export function buildExplorationSubmission(answers: Array<number | null>): Explo
     role_choices: selectedOptions.slice(4)
   };
 }
+
+export function getCareerIdForQuizRole(role: string) {
+  const normalized = role.toLowerCase();
+
+  if (/full[ -]?stack/.test(normalized)) return "full-stack-developer";
+  if (/ui\s*\/?\s*ux|front.?end|interface|visual design/.test(normalized)) return "frontend-developer";
+  if (/cyber|security|network/.test(normalized)) return "cybersecurity-engineer";
+  if (/machine learning|\bai\b|intelligent/.test(normalized)) return "ml-ai-engineer";
+  if (/data & database|database architect|data engineer|knowledge graph|ontology/.test(normalized)) return "data-engineer";
+  if (/data science|data analytics/.test(normalized)) return "data-scientist";
+  if (/quality assurance|\bqa\b|test automation/.test(normalized)) return "qa-sdet";
+  if (/embedded|hardware/.test(normalized)) return "embedded-systems-engineer";
+  if (/\bgame\b/.test(normalized)) return "game-developer";
+  if (/cloud infrastructure|cloud engineer/.test(normalized)) return "cloud-engineer";
+  if (/cloud|devops|systems?|\biot\b|infrastructure/.test(normalized)) return "devops-sre";
+  if (/software|backend|development|engineering/.test(normalized)) return "backend-developer";
+
+  return null;
+}

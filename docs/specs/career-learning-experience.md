@@ -77,13 +77,17 @@ Firestore stores one document at `learningProgress/{uid}`. The document ID must 
 
 ## Explore Careers
 
-The page order is title, search, personalized recommendation, categories, and the full catalog. Search matches role names, categories, stack, and skills. Category controls use accessible tabs and may scroll horizontally on small screens.
+The page order is title, the two career-track action cards, the current-track badge, search, personalized recommendation, categories, and the full catalog. Search matches role names, categories, stack, and skills. Category controls use accessible tabs and may scroll horizontally on small screens.
+
+After Model 1 assessment submission, show the backend's ranked career matches and provide a scrollable side sheet for the complete ranking. The recommended role can be connected to its known static catalog roadmap through the existing learning-progress flow.
 
 Career cards expose only the decision-making metadata needed for comparison: role, summary, core stack, stage/skill counts, and match/readiness context. Career Detail owns the deeper content: responsibilities, fit reasoning, grouped core skills, roadmap preview, related projects, and start/open-roadmap action.
 
 ## My Roadmap
 
 The first decision card is Current Focus. It identifies the current stage, explains why the stage matters, shows skill progress, and links to contextual resources. Up Next remains compact. The full path is a responsive vertical stage accordion, never a wide graph.
+
+After a Model 2 prediction, generate one editable roadmap from the highest probability role. `Open Your Roadmap` opens that roadmap in a sheet where users can edit milestones and skills, set their statuses, reorder or delete skills, and save the result. Roadmap edits sync to `users/{uid}/saved_data/roadmap` in Firestore and maintain a user-scoped LocalStorage cache for offline or unauthenticated use. When the sidebar `My Roadmap` route opens, read Firestore first and fall back to that cache. Use `src/data/roadmapGenerator.ts` for role-specific templates and catalog-backed fallbacks.
 
 Every skill includes:
 
