@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";
 import type { CurrentUser } from "../../data/mockUser";
 import astronaut from "../../assets/astronaut.png";
+import BrandMark from "./BrandMark";
 import { useI18n } from "../../i18n/I18nContext";
 import type { TranslationKey } from "../../i18n/translations";
 import UserAvatar from "./UserAvatar";
@@ -98,7 +99,10 @@ export default function Sidebar({
     <aside className={`app-sidebar ${effectiveCollapsed ? "app-sidebar--collapsed" : ""} ${drawer ? "app-sidebar--drawer" : ""}`}>
       <img className="app-sidebar-decoration" src={astronaut} alt="" aria-hidden="true" />
       <div className="app-sidebar-brand-row">
-        <span className="app-sidebar-brand">The Way</span>
+        <span className="app-sidebar-brand-lockup">
+          <BrandMark />
+          <span className="app-sidebar-brand">The Way</span>
+        </span>
         {onCollapseToggle ? (
           <button
             type="button"
