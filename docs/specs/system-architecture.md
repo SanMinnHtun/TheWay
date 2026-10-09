@@ -26,7 +26,7 @@ For the Firebase profile phase, profile CRUD is handled directly from the authen
 
 AI calls should be isolated behind service functions. UI components should never construct raw prompts directly. The service boundary should accept normalized user profile, answers, and latest roadmap context, then return structured output.
 
-The current Way Assistant UI phase is mock-only. Local UI state may create temporary messages and prompt interactions, but any future networked assistant behavior must route through a chat service boundary.
+Way Assistant sends conversation turns through `src/services/assistantChat.ts` to the authenticated Firebase HTTPS function `assistantChat`. The function verifies the Firebase ID token, bounds and sanitizes conversation/context inputs, honors the selected English or Burmese app language, then calls OpenRouter with the Gemini 2.5 Flash model. The OpenRouter key is stored as a Firebase Secret Manager secret and must never be placed in Vite client variables. Local development routes the same-origin assistant endpoint through Vite to the Functions emulator.
 
 ## Auth and Profile State
 
@@ -42,6 +42,8 @@ The frontend should expose centralized route state for loading, unauthenticated,
 - Roadmap service: roadmap generation and saved roadmap retrieval.
 - Resource service: curated resources by roadmap stage.
 - Chat service: assistant messages grounded in user context.
+
+The assistant provider key is a server-only secret. Firebase Hosting rewrites `/api/assistant/chat` to the `us-central1` function; local Vite development proxies that path to the Functions emulator.
 
 ## Architecture Rules
 

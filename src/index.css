@@ -4348,6 +4348,16 @@ h1 {
   margin-left: 3px;
 }
 
+.assistant-error {
+  width: fit-content;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.18);
+  color: #fecaca;
+  padding: 10px 13px;
+  font-size: 13px;
+}
+
 .assistant-context-strip {
   display: flex;
   flex-wrap: wrap;

@@ -12,6 +12,11 @@ export default defineConfig({
       "/api/v1": {
         target: "http://127.0.0.1:8001",
         changeOrigin: true
+      },
+      "/api/assistant/chat": {
+        target: "http://127.0.0.1:5001",
+        changeOrigin: true,
+        rewrite: () => "/the-way-6f882/us-central1/assistantChat"
       }
     }
   },

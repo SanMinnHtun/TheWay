@@ -4,6 +4,7 @@ node_modules/
 # Production builds
 dist/
 .firebase/
+functions/.secret.local
 
 # Local environment files
 .env

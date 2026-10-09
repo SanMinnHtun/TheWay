@@ -83,16 +83,19 @@ Profile storage is one document per user at `users/{uid}`. The profile feature o
 
 Inputs:
 
-- User profile
-- Latest or selected assessment
-- Current roadmap
+- User mode and current status
+- Selected app language (`en` or `my`)
+- Selected career or personalized roadmap and skill progress
 - User message
+- Recent conversation turns
 
 Outputs:
 
 - Context-aware answer
 - Suggested next action
 - Optional roadmap or resource reference
+
+The assistant service sends Firebase-authenticated requests through the server-side `assistantChat` function. The function verifies identity, bounds request size, and keeps provider credentials in Secret Manager. The client sends only the recent conversation, selected app language, and relevant mode, role, and roadmap progress context; it never calls the model provider directly. When Burmese is selected, replies default to Burmese while established technical terms remain in English.
 
 The assistant should explain roadmap steps, answer learning questions, and avoid unsupported claims about guaranteed jobs or outcomes.
 
@@ -102,7 +105,7 @@ Inputs:
 
 - Authenticated user identity or frontend mock user.
 - Current route.
-- Local UI state for sidebar collapse, mobile drawer, prompt selection, and mock assistant messages.
+- Local UI state for sidebar collapse, mobile drawer, prompt selection, and the visible assistant conversation.
 
 Outputs:
 

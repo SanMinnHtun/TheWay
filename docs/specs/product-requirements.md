@@ -47,7 +47,7 @@ Scope for this phase:
 - Default authenticated destination is Explore Careers.
 - Fully design the sidebar, shared app layout, Way Assistant header, assistant conversation surface, prompt chips, composer, responsive navigation, and shared space background.
 - Provide polished guided preview shells for Learning Resources, Explore Careers, My Roadmap, and Settings.
-- Do not implement real AI, roadmap generation, resource recommendations, persistence, or backend integrations in this phase.
+- Keep AI provider calls behind an authenticated server function; never expose provider credentials in the frontend bundle.
 
 ## Product Risks
 
