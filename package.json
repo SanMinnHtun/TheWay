@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "assistant:emulator": "firebase emulators:start --only functions",
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1"

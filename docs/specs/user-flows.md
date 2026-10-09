@@ -54,7 +54,7 @@ This is the temporary post-profile destination while the full dashboard and asse
 5. From the result page, the learner can start the local catalog roadmap corresponding to a recognized top career match.
 6. `Build My Roadmap` opens the 10-question experienced learner assessment at `/app/assessment/goal`. Answers are 10 integers from 0 to 4; changing English/Myanmar labels never changes the submitted values. On success, show the predicted role, confidence, all nine sorted probabilities, a roadmap modal action, and a retake action.
 7. User can navigate client-side between Explore Careers, My Roadmap, Learning Resources, Way Assistant, and Settings.
-8. Way Assistant remains available at `/app/assistant` with its mock welcome message, suggested prompts, and message composer.
+8. Way Assistant remains available at `/app/assistant` with its localized welcome message, suggested prompts, and message composer. Submitted turns are sent with Firebase authentication and current learning context to the server-side assistant function; errors leave the conversation visible and offer a retry.
 9. A Model 2 result opens the highest percentage role's editable roadmap. My Roadmap checks the user's Firestore roadmap first and displays it when present; otherwise it uses the current top-match roadmap, then falls back to the existing selected catalog roadmap. Roadmap edits sync to Firestore and keep a LocalStorage fallback.
 
 ## Return User Flow

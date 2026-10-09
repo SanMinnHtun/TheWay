@@ -36,4 +36,23 @@ npm run build
 firebase deploy --only hosting
 ```
 
+## Way Assistant API
+
+Way Assistant uses the Firebase `assistantChat` function as a server-side proxy to OpenRouter. The provider key must not be added to `.env`, `.env.local`, or any `VITE_*` variable. Rotate any key that has been shared in chat, then set the replacement in Firebase Secret Manager:
+
+```bash
+firebase functions:secrets:set OPENROUTER_API_KEY
+```
+
+For local development, install the function dependencies and run the Functions emulator alongside Vite:
+
+```bash
+npm --prefix functions install
+firebase emulators:start --only functions
+```
+
+Put a locally scoped key in `functions/.secret.local` for the emulator (`OPENROUTER_API_KEY=...`); this file is ignored by Git. Vite forwards `/api/assistant/chat` to the emulator on `127.0.0.1:5001`.
+
+Deploying Cloud Functions requires the Firebase project to use the Blaze plan. After enabling that plan in Firebase, deploy the function and Hosting rewrite with `firebase deploy --only functions,hosting`.
+
 Profiles are stored at `users/{uid}`. Firestore rules restrict users to their own profile document.

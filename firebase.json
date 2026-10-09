@@ -3,6 +3,9 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "functions": {
+    "source": "functions"
+  },
   "hosting": {
     "public": "dist",
     "ignore": [
@@ -11,6 +14,13 @@
       "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/api/assistant/chat",
+        "function": {
+          "functionId": "assistantChat",
+          "region": "us-central1"
+        }
+      },
       {
         "source": "**",
         "destination": "/index.html"

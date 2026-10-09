@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 import type { CurrentUser } from "../data/mockUser";
 import { useI18n } from "../i18n/I18nContext";
 import type { UserProfile } from "../types/profile";
+import { useLearningExperience } from "../context/LearningExperienceContext";
+import { useCareerRoadmap } from "../context/CareerRoadmapContext";
+import { getCareerById, getRoadmapById } from "../data/learningCatalog";
+import { sendAssistantMessage, type AssistantChatMessage, type AssistantContext } from "../services/assistantChat";
 import AssistantHeader from "../components/assistant/AssistantHeader";
 import ChatComposer from "../components/assistant/ChatComposer";
 import ChatMessage, { type ChatMessageModel } from "../components/assistant/ChatMessage";
@@ -16,7 +20,7 @@ const promptSuggestionKeys = [
   "assistant.prompt.milestone"
 ] as const;
 
-function getMockTime() {
+function getCurrentTime() {
   return new Intl.DateTimeFormat("en", {
     hour: "numeric",
     minute: "2-digit"
@@ -27,9 +31,11 @@ export default function WayAssistant() {
   const { currentUser, profile } = useOutletContext<{ currentUser: CurrentUser; profile: UserProfile | null }>();
   const { t, language } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
-  const replyTimer = useRef<number | null>(null);
+  const learning = useLearningExperience();
+  const careerRoadmap = useCareerRoadmap();
   const [inputValue, setInputValue] = useState("");
   const [isThinking, setIsThinking] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [messages, setMessages] = useState<ChatMessageModel[]>(() => [
     {
       id: "welcome",
@@ -39,6 +45,10 @@ export default function WayAssistant() {
     }
   ]);
 
+  const focusRole = careerRoadmap.savedRoadmap?.roleTitle
+    ?? careerRoadmap.roadmap?.roleTitle
+    ?? getCareerById(learning.state?.selectedCareerId)?.name[language]
+    ?? t("assistant.noRoadmapFocus");
   const visiblePrompts = useMemo(() => promptSuggestionKeys.map((key) => t(key)), [language, t]);
 
   useEffect(() => {
@@ -69,50 +79,95 @@ export default function WayAssistant() {
     }, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => {
-    return () => {
-      if (replyTimer.current) {
-        window.clearTimeout(replyTimer.current);
-      }
-    };
-  }, []);
-
   function handlePromptClick(prompt: string) {
     setInputValue(prompt);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const trimmed = inputValue.trim();
 
     if (!trimmed || isThinking) {
       return;
     }
 
-    setMessages((current) => [
-      ...current,
-      {
-        id: `user-${Date.now()}`,
-        role: "user",
-        timestamp: getMockTime(),
-        content: trimmed
-      }
-    ]);
+    const nextUserMessage: ChatMessageModel = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      timestamp: getCurrentTime(),
+      content: trimmed
+    };
+    const conversation: AssistantChatMessage[] = [
+      ...messages
+        .filter((message) => message.id !== "welcome")
+        .slice(-11)
+        .map(({ role, content }) => ({ role, content })),
+      { role: "user", content: trimmed }
+    ];
+    setMessages((current) => [...current, nextUserMessage]);
     setInputValue("");
     setIsThinking(true);
+    setSubmitError("");
 
-    replyTimer.current = window.setTimeout(() => {
-      const mode = profile?.mode === "GOAL" ? t("profile.modeGoal") : t("profile.modeExplore");
+    const learningState = learning.state;
+    const selectedCareer = getCareerById(learningState?.selectedCareerId);
+    const selectedCatalogRoadmap = getRoadmapById(learningState?.roadmapId);
+    const personalizedRoadmap = careerRoadmap.savedRoadmap ?? careerRoadmap.roadmap;
+    const editableStages = personalizedRoadmap?.stages.map((stage) => ({
+      title: stage.title,
+      status: stage.status,
+      skills: stage.skills.map((skill) => ({ name: skill.name, status: skill.status }))
+    }));
+    const catalogStages = selectedCatalogRoadmap?.stages.map((stage) => ({
+      title: stage.title.en,
+      status: stage.skills.every((skill) => learningState?.completedSkillIds.includes(skill.id)) ? "completed" : "in-progress",
+      skills: stage.skills.map((skill) => ({
+        name: skill.name.en,
+        status: learningState?.completedSkillIds.includes(skill.id) ? "completed" : "pending"
+      }))
+    }));
+    const stages = editableStages ?? catalogStages ?? [];
+    const allSkills = stages.flatMap((stage) => stage.skills);
+    const context: AssistantContext = {
+      language,
+      mode: profile?.mode ?? "EXPLORE",
+      currentStatus: profile?.currentStatus,
+      topRole: personalizedRoadmap?.roleTitle ?? selectedCareer?.name.en,
+      completedSkills: allSkills.filter((skill) => skill.status === "completed").length,
+      totalSkills: allSkills.length,
+      stages
+    };
+
+    try {
+      const reply = await sendAssistantMessage(conversation, context);
       setMessages((current) => [
         ...current,
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
-          timestamp: getMockTime(),
-          content: t("assistant.mockReply", { mode })
+          timestamp: getCurrentTime(),
+          content: reply
         }
       ]);
+    } catch (error) {
+      console.error("Way Assistant could not send the message", error);
+      const code = error instanceof Error ? error.message : "";
+      const messageKey = code === "assistant-secret-missing"
+        ? "assistant.secretMissing"
+        : code === "assistant-provider-auth-error"
+          ? "assistant.providerAuthError"
+          : code === "assistant-provider-billing-error"
+            ? "assistant.providerBillingError"
+            : code === "assistant-provider-rate-limit"
+              ? "assistant.providerRateLimit"
+              : code === "assistant-provider-model-error"
+                ? "assistant.providerModelError"
+                : code.startsWith("assistant-request-failed:500")
+                  ? "assistant.serverUnavailable"
+                  : "assistant.error";
+      setSubmitError(t(messageKey));
+    } finally {
       setIsThinking(false);
-    }, 620);
+    }
   }
 
   return (
@@ -132,11 +187,12 @@ export default function WayAssistant() {
               <p>{t("assistant.thinking")}</p>
             </div>
           ) : null}
+          {submitError ? <p className="assistant-error" role="alert">{submitError}</p> : null}
         </div>
 
         <aside className="assistant-context-strip" aria-label={t("assistant.contextLabel")}>
           <span>{t("assistant.contextMode", { mode: profile?.mode === "GOAL" ? t("profile.modeGoal") : t("profile.modeExplore") })}</span>
-          <span>{t("assistant.contextFocus")}</span>
+          <span>{t("assistant.contextFocus", { focus: focusRole })}</span>
         </aside>
 
         <div className="prompt-chip-row" aria-label="Suggested prompts">

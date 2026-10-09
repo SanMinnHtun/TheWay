@@ -8,6 +8,7 @@ import { LearningExperienceProvider } from "../../context/LearningExperienceCont
 import LearningPageSkeleton from "../learning/LearningPageSkeleton";
 import { CareerRoadmapProvider } from "../../context/CareerRoadmapContext";
 import { PredictedRoadmapModal } from "../learning/PredictedCareerRoadmap";
+import BrandMark from "./BrandMark";
 
 function getStoredCollapsedState() {
   if (typeof window === "undefined") {
@@ -100,7 +101,10 @@ export default function AppShell() {
         >
           <MenuIcon className="h-5 w-5" />
         </button>
-        <span>The Way</span>
+        <span className="app-mobile-brand">
+          <BrandMark size="sm" />
+          The Way
+        </span>
       </header>
 
       <div className={`app-drawer-backdrop ${isDrawerOpen ? "app-drawer-backdrop--open" : ""}`}>

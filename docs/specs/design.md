@@ -115,7 +115,7 @@ The header should feel connected to the sidebar while slightly elevated from the
 
 The initial assistant view should contain:
 
-- One mock assistant message near the upper-left.
+- One localized welcome message near the upper-left.
 - A large empty conversation region.
 - Suggested prompt chips near the bottom.
 - A bottom composer anchored inside the app workspace.
@@ -291,7 +291,7 @@ Recommended reusable components:
 - `Skeleton`
 - `SkeletonCard`
 
-Keep assistant data local and mock-only for this phase. Future AI integration should live behind a service boundary rather than inside UI components.
+Route assistant requests through the typed chat service. Provider calls belong in the authenticated server function; the interface displays an in-conversation error if a request fails.
 
 ## Profile and Settings UI
 

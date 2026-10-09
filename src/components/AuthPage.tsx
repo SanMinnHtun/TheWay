@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import StarField from "./effects/StarField";
+import BrandMark from "./app/BrandMark";
 import { getAuthErrorMessage, signInWithGoogle } from "../services/firebaseAuth";
 import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
 import type { AssessmentTrack } from "../types/onboarding";
@@ -159,8 +160,9 @@ export default function AuthPage() {
         <header className="auth-header mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
           <Link
             to="/"
-            className="auth-brand text-base font-semibold tracking-[0.16em] text-white transition hover:text-[#beb8ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
+            className="auth-brand inline-flex items-center gap-2 text-base font-semibold tracking-[0.16em] text-white transition hover:text-[#beb8ff] focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-[#02090f]"
           >
+            <BrandMark size="sm" />
             THE WAY
           </Link>
           <Link
