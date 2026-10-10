@@ -1,4 +1,4 @@
-const MODEL2_ENDPOINT = "https://model2-s2.onrender.com/api/v1/career/predict";
+const MODEL2_ENDPOINT = `${(process.env.MODEL2_API_URL || "https://model2-s2.onrender.com").replace(/\/$/, "")}/api/v1/career/predict`;
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -23,10 +23,12 @@ export default async function handler(request, response) {
         status: upstreamResponse.status,
         body: body.slice(0, 1000)
       });
-      response.status(502).json({
-        error: "model2-upstream-unavailable",
-        upstreamStatus: upstreamResponse.status
-      });
+      response.status(upstreamResponse.status);
+      response.setHeader(
+        "Content-Type",
+        upstreamResponse.headers.get("content-type") || "application/json"
+      );
+      response.send(body);
       return;
     }
 

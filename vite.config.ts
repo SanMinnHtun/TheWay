@@ -4,6 +4,7 @@ import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   server: {
+    host: "0.0.0.0",
     proxy: {
       "/quiz": {
         target: "http://127.0.0.1:8000",
@@ -18,7 +19,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: () => "/quiz/submit"
       },
-      "/api/model2": {
+      "/api/model2/questions": {
+        target: "https://model2-s2.onrender.com",
+        changeOrigin: true,
+        rewrite: () => "/api/v1/career/questions"
+      },
+      "/api/model2/predict": {
         target: "https://model2-s2.onrender.com",
         changeOrigin: true,
         rewrite: () => "/api/v1/career/predict"
