@@ -18,6 +18,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: () => "/quiz/submit"
       },
+      "/api/model2": {
+        target: "https://model2-s2.onrender.com",
+        changeOrigin: true,
+        rewrite: () => "/api/v1/career/predict"
+      },
       "/api/assistant/chat": {
         target: "http://127.0.0.1:5001",
         changeOrigin: true,

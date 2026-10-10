@@ -5,7 +5,10 @@ export interface Model2Prediction {
 }
 
 const model2ApiOrigin = "https://model2-s2.onrender.com";
-const apiBaseUrl = import.meta.env.VITE_MODEL2_API_URL || model2ApiOrigin;
+const configuredApiUrl = import.meta.env.VITE_MODEL2_API_URL?.trim();
+const model2Endpoint = !import.meta.env.PROD && configuredApiUrl
+  ? `${configuredApiUrl.replace(/\/$/, "")}/api/v1/career/predict`
+  : "/api/model2/predict";
 
 function isModel2Prediction(value: unknown): value is Model2Prediction {
   if (!value || typeof value !== "object") return false;
@@ -26,7 +29,7 @@ export async function predictCareerForModel2(answers: number[]): Promise<Model2P
     throw new Error("model2-invalid-answers");
   }
 
-  const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/api/v1/career/predict`, {
+  const response = await fetch(model2Endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
