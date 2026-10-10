@@ -4,7 +4,8 @@ export interface Model2Prediction {
   probabilities: Record<string, number>;
 }
 
-const apiBaseUrl = import.meta.env.VITE_MODEL2_API_URL || "";
+const model2ApiOrigin = "https://model2-s2.onrender.com";
+const apiBaseUrl = import.meta.env.VITE_MODEL2_API_URL || model2ApiOrigin;
 
 function isModel2Prediction(value: unknown): value is Model2Prediction {
   if (!value || typeof value !== "object") return false;
