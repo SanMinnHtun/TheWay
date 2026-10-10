@@ -208,7 +208,7 @@ function getRecommendedResources(role: string): LearningResource[] {
   return recommendations.slice(0, 3);
 }
 
-function RecommendedSources({ role, resources, language, title, subtitle, openLabel }: {
+function RecommendedSources({ role, resources, language, title, subtitle, openLabel, emptyLabel }: {
   role: string;
   resources: LearningResource[];
   language: Language;
@@ -325,7 +325,7 @@ export default function ExplorationResult({
   const { primary, matches } = findRoleMatches(data);
   const runnerUp = readRoleMatch(findField(data, ["runner_up", "runnerUp", "second_recommendation"]));
   const hasStructuredMatches = matches.length > 0;
-  const topRoleResources = getRecommendedResources(primary.role);
+  const topRoleResources = primary ? getRecommendedResources(primary.role) : [];
 
   if (hasStructuredMatches && primary) {
     return (
