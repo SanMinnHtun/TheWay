@@ -38,14 +38,20 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     let message = "";
     const responseText = await response.text().catch(() => "");
+    let upstreamUnavailable = false;
     try {
       const body: unknown = JSON.parse(responseText);
       if (body && typeof body === "object") {
-        const detail = (body as { detail?: unknown; error?: unknown }).detail ?? (body as { error?: unknown }).error;
+        const errorCode = (body as { error?: unknown }).error;
+        upstreamUnavailable = errorCode === "model2-upstream-unavailable";
+        const detail = (body as { detail?: unknown; error?: unknown }).detail ?? errorCode;
         message = typeof detail === "string" ? detail : detail ? JSON.stringify(detail) : "";
       }
     } catch {
       message = responseText;
+    }
+    if (upstreamUnavailable || responseText.includes("model2-upstream-unavailable")) {
+      throw new Error("model2-upstream-unavailable");
     }
     const statusMessage = response.status === 422
       ? "The answers were rejected. Review them and try again."

@@ -43,7 +43,7 @@ The frontend should expose centralized route state for loading, unauthenticated,
 - Resource service: curated resources by roadmap stage.
 - Chat service: assistant messages grounded in user context.
 
-The assistant provider key is a server-only secret. Firebase Hosting rewrites `/api/assistant/chat` to the `us-central1` function; local Vite development proxies that path to the Functions emulator.
+The assistant provider key is a server-only secret. Vercel handles `/api/assistant/chat`, validates the Firebase ID token through Firebase Auth, and calls the provider without exposing the key to the browser. Local Vite development proxies that path to the Functions emulator when the emulator is running.
 
 ## Architecture Rules
 

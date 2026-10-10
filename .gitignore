@@ -23,3 +23,5 @@ Thumbs.db
 
 # TypeScript incremental state
 *.tsbuildinfo
+.vercel
+.env*

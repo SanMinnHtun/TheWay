@@ -32,7 +32,8 @@ const copy = {
     roadmapDescription: "Start a learning roadmap for your top match, {role}.",
     openRoadmap: "Open Your Roadmap",
     retake: "Retake Assessment",
-    error: "We couldn't analyze your answers. Please check your connection and try again."
+    error: "We couldn't analyze your answers. Please check your connection and try again.",
+    unavailable: "The career prediction service is temporarily unavailable. Please try again in a few minutes."
   },
   my: {
     eyebrow: "အလုပ်အကိုင်ဦးတည်ချက် အကဲဖြတ်မှု",
@@ -56,7 +57,8 @@ const copy = {
     roadmapDescription: "ထိပ်ဆုံးကိုက်ညီမှုဖြစ်သော {role} အတွက် သင်ယူမှုလမ်းပြမြေပုံကို စတင်ပါ။",
     openRoadmap: "ကျွန်ုပ်၏လမ်းပြမြေပုံဖွင့်ရန်",
     retake: "အကဲဖြတ်မှု ပြန်ဖြေမည်",
-    error: "အဖြေများကို ခွဲခြမ်းစိတ်ဖြာ၍ မရပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်စမ်းပါ။"
+    error: "အဖြေများကို ခွဲခြမ်းစိတ်ဖြာ၍ မရပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်စမ်းပါ။",
+    unavailable: "အလုပ်အကိုင်ခန့်မှန်းဝန်ဆောင်မှုကို ခေတ္တအသုံးပြု၍ မရပါ။ မိနစ်အနည်းငယ်အကြာတွင် ထပ်စမ်းပါ။"
   }
 } satisfies Record<DisplayLanguage, {
   eyebrow: string;
@@ -81,6 +83,7 @@ const copy = {
   openRoadmap: string;
   retake: string;
   error: string;
+  unavailable: string;
 }>;
 
 const chartColors = ["#a184ed", "#ff7a1a", "#b36ded", "#f3c944", "#78a8ff"];
@@ -159,8 +162,10 @@ export default function Model2QuizCard() {
       const prediction = await predictCareerForModel2(answers);
       recordPrediction(prediction);
       setResult(prediction);
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : labels.error);
+    } catch (error) {
+      setError(error instanceof Error && error.message === "model2-upstream-unavailable"
+        ? labels.unavailable
+        : labels.error);
     } finally {
       setSubmitting(false);
     }
