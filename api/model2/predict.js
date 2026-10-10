@@ -18,6 +18,18 @@ export default async function handler(request, response) {
     });
     const body = await upstreamResponse.text();
 
+    if (!upstreamResponse.ok) {
+      console.error("Model 2 upstream request failed", {
+        status: upstreamResponse.status,
+        body: body.slice(0, 1000)
+      });
+      response.status(502).json({
+        error: "model2-upstream-unavailable",
+        upstreamStatus: upstreamResponse.status
+      });
+      return;
+    }
+
     response.status(upstreamResponse.status);
     response.setHeader(
       "Content-Type",
