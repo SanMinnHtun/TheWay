@@ -1,7 +1,8 @@
 import type { ExplorationQuizSubmission } from "../data/explorationQuiz";
 
-const model1Endpoint = import.meta.env.VITE_QUIZ_API_URL
-  ? `${import.meta.env.VITE_QUIZ_API_URL.replace(/\/$/, "")}/quiz/submit`
+const configuredApiUrl = import.meta.env.VITE_QUIZ_API_URL?.trim();
+const model1Endpoint = !import.meta.env.PROD && configuredApiUrl
+  ? `${configuredApiUrl.replace(/\/$/, "")}/quiz/submit`
   : "/api/model1/submit";
 
 const zodiacGroups: Record<string, string> = {

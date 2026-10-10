@@ -13,7 +13,7 @@ cp .env.example .env
 
 Then fill in the Vite Firebase client config values from the Firebase console.
 
-The Model 1 career exploration quiz is connected through the same-origin `/api/model1/submit` proxy by default, which avoids browser CORS restrictions when deployed on Vercel. The proxy forwards normalized exploration answers to `https://model1-s2-1.onrender.com/quiz/submit`. Set `VITE_QUIZ_API_URL` to override this with a directly reachable API origin; that backend must then allow the app origin through CORS. Vite variables are embedded at build time, so set the production value in the deployment environment before `npm run build`.
+The Model 1 career exploration quiz uses the same-origin `/api/model1/submit` proxy in production, which avoids browser CORS restrictions when deployed on Vercel. The proxy forwards normalized exploration answers to `https://model1-s2-1.onrender.com/quiz/submit`. `VITE_QUIZ_API_URL` can override this only during local development; production always uses the proxy.
 
 The Way Assistant is also connected through the same-origin `/api/assistant/chat` Vercel proxy in production. It forwards the Firebase ID token to the deployed `assistantChat` Cloud Function. Keep `VITE_ASSISTANT_API_URL` empty unless using a compatible custom assistant endpoint.
 
