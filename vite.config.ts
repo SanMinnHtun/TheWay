@@ -13,6 +13,11 @@ export default defineConfig({
         target: "http://127.0.0.1:8001",
         changeOrigin: true
       },
+      "/api/model1": {
+        target: "https://model1-s2-1.onrender.com",
+        changeOrigin: true,
+        rewrite: () => "/quiz/submit"
+      },
       "/api/assistant/chat": {
         target: "http://127.0.0.1:5001",
         changeOrigin: true,
