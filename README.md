@@ -15,6 +15,8 @@ Then fill in the Vite Firebase client config values from the Firebase console.
 
 For production builds, also set `VITE_QUIZ_API_URL` to the deployed quiz backend's HTTPS origin (for example, `https://api.example.com`). The quiz backend must allow the exact Firebase Hosting origin in its CORS configuration and permit `POST` requests with the `Content-Type` header. The local Vite proxy only works during development; `127.0.0.1:8000` cannot be used by deployed visitors. Vite variables are embedded at build time, so set the production value in the deployment environment before `npm run build`.
 
+The Model 2 career diagnostic is connected to `https://model2-s2.onrender.com` by default. It accepts ten zero-based answer indices at `POST /api/v1/career/predict`. Set `VITE_MODEL2_API_URL` to override this origin for a local or self-hosted deployment. The deployed API must allow the app origin through CORS.
+
 Required Firebase CLI setup:
 
 ```bash
