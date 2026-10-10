@@ -29,6 +29,8 @@ const labels = {
     recommendedSources: "Recommended learning sources",
     sourcesFor: "Recommended for {role}",
     openSource: "Open resource",
+    buildRoadmap: "Build my roadmap",
+    buildRoadmapDescription: "Use the Model 2 diagnostic to turn your direction into an editable learning roadmap.",
     noSources: "No learning sources are available for this match yet.",
     fitScores: "Career fit scores",
     reasoning: "Why this may fit",
@@ -46,6 +48,8 @@ const labels = {
     recommendedSources: "အကြံပြုသင်ယူမှုရင်းမြစ်များ",
     sourcesFor: "{role} အတွက် အကြံပြုထားသည်",
     openSource: "ရင်းမြစ်ဖွင့်ရန်",
+    buildRoadmap: "ကျွန်ုပ်၏လမ်းပြမြေပုံတည်ဆောက်ရန်",
+    buildRoadmapDescription: "သင့်အလုပ်အကိုင်ဦးတည်ချက်ကို ပြင်ဆင်နိုင်သော သင်ယူမှုလမ်းပြမြေပုံအဖြစ် ပြောင်းလဲရန် Model 2 အကဲဖြတ်မှုကို အသုံးပြုပါ။",
     noSources: "ဤအလုပ်အကိုင်အတွက် သင်ယူမှုရင်းမြစ်များ မရရှိနိုင်သေးပါ။",
     fitScores: "အလုပ်အကိုင်ကိုက်ညီမှုရမှတ်များ",
     reasoning: "သင်နှင့်ကိုက်ညီနိုင်သည့်အကြောင်းရင်း",
@@ -367,6 +371,14 @@ export default function ExplorationResult({
             emptyLabel={copy.noSources}
           />
         </div>
+        <section className="exploration-result-card exploration-roadmap-next-step">
+          <p className="exploration-quiz-eyebrow">Model 2</p>
+          <h2>{copy.buildRoadmap}</h2>
+          <p>{copy.buildRoadmapDescription}</p>
+          <Link to="/app/assessment/goal" className="exploration-recommended-link">
+            {copy.buildRoadmap} <span aria-hidden="true">→</span>
+          </Link>
+        </section>
 
         <Sheet open={showAllMatches} onOpenChange={setShowAllMatches}>
           <SheetContent side="right" className="exploration-result-sheet">
