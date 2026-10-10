@@ -1,6 +1,7 @@
 import type { ExplorationQuizSubmission } from "../data/explorationQuiz";
 
-const apiBaseUrl = import.meta.env.VITE_QUIZ_API_URL || "";
+const model1ApiOrigin = "https://model1-s2-1.onrender.com";
+const apiBaseUrl = import.meta.env.VITE_QUIZ_API_URL || model1ApiOrigin;
 
 const zodiacGroups: Record<string, string> = {
   aries: "Aries / Taurus / Gemini",
