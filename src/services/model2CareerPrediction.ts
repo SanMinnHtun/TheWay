@@ -51,6 +51,14 @@ export async function predictCareerForModel2(answers: number[]): Promise<Model2P
       statusText: response.statusText,
       detail
     });
+    if (
+      detail
+      && typeof detail === "object"
+      && "error" in detail
+      && detail.error === "model2-upstream-unavailable"
+    ) {
+      throw new Error("model2-upstream-unavailable");
+    }
     throw new Error(`model2-prediction-failed:${response.status}`);
   }
 
