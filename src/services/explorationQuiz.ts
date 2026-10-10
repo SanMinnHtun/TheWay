@@ -1,7 +1,8 @@
 import type { ExplorationQuizSubmission } from "../data/explorationQuiz";
 
-const model1ApiOrigin = "https://model1-s2-1.onrender.com";
-const apiBaseUrl = import.meta.env.VITE_QUIZ_API_URL || model1ApiOrigin;
+const model1Endpoint = import.meta.env.VITE_QUIZ_API_URL
+  ? `${import.meta.env.VITE_QUIZ_API_URL.replace(/\/$/, "")}/quiz/submit`
+  : "/api/model1/submit";
 
 const zodiacGroups: Record<string, string> = {
   aries: "Aries / Taurus / Gemini",
@@ -106,7 +107,7 @@ export function transformExplorationSubmission(payload: ExplorationQuizSubmissio
 
 export async function submitExplorationQuiz(payload: ExplorationQuizSubmission): Promise<unknown> {
   const transformedPayload = transformExplorationSubmission(payload);
-  const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/quiz/submit`, {
+  const response = await fetch(model1Endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
