@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import loadingVideo from "../assets/model1-loading.mp4";
 import loadingPoster from "../assets/model1-loading-poster.jpg";
-import { MODEL2_QUESTIONS_BILINGUAL } from "../data/model2Questions";
 import { useCareerRoadmap } from "../context/CareerRoadmapContext";
 import { useI18n } from "../i18n/I18nContext";
-import { predictCareerForModel2, type Model2Prediction } from "../services/model2CareerPrediction";
+import { fetchModel2Questions, predictCareerForModel2, type Model2Prediction, type Model2Question } from "../services/model2CareerPrediction";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./ui/sheet";
 
@@ -13,7 +12,10 @@ type DisplayLanguage = "en" | "my";
 const copy = {
   en: {
     eyebrow: "Career direction assessment",
-    question: (current: number) => `Question ${current} of ${MODEL2_QUESTIONS_BILINGUAL.length}`,
+    question: (current: number) => `Question ${current} of 10`,
+    loadingQuestions: "Loading career questions...",
+    retry: "Try again",
+    continue: "Continue",
     back: "Back",
     submit: "Submit Assessment",
     submitting: "Analyzing your answers...",
@@ -34,7 +36,10 @@ const copy = {
   },
   my: {
     eyebrow: "အလုပ်အကိုင်ဦးတည်ချက် အကဲဖြတ်မှု",
-    question: (current: number) => `မေးခွန်း ${current} / ${MODEL2_QUESTIONS_BILINGUAL.length}`,
+    question: (current: number) => `မေးခွန်း ${current} / ၁၀`,
+    loadingQuestions: "အလုပ်အကိုင်ဆိုင်ရာ မေးခွန်းများကို ဖွင့်နေသည်...",
+    retry: "ထပ်စမ်းရန်",
+    continue: "ရှေ့ဆက်ရန်",
     back: "နောက်သို့",
     submit: "အကဲဖြတ်မှု ပေးပို့ရန်",
     submitting: "သင့်အဖြေများကို ခွဲခြမ်းစိတ်ဖြာနေသည်...",
@@ -56,6 +61,9 @@ const copy = {
 } satisfies Record<DisplayLanguage, {
   eyebrow: string;
   question: (current: number) => string;
+  loadingQuestions: string;
+  retry: string;
+  continue: string;
   back: string;
   submit: string;
   submitting: string;
@@ -91,8 +99,10 @@ function matchesToGradient(matches: Array<{ role: string; percentage: number }>)
 export default function Model2QuizCard() {
   const { language } = useI18n();
   const { recordPrediction, setRoadmapModalOpen } = useCareerRoadmap();
-  const [displayLanguage, setDisplayLanguage] = useState<DisplayLanguage>(language);
+  const displayLanguage: DisplayLanguage = language;
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [questions, setQuestions] = useState<Model2Question[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [answers, setAnswers] = useState<number[]>(() => Array(10).fill(0));
   const [answered, setAnswered] = useState<boolean[]>(() => Array(10).fill(false));
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -100,15 +110,25 @@ export default function Model2QuizCard() {
   const [result, setResult] = useState<Model2Prediction | null>(null);
   const [error, setError] = useState("");
   const [showAllMatches, setShowAllMatches] = useState(false);
-  const advanceTimer = useRef<number | null>(null);
-  const currentQuestion = MODEL2_QUESTIONS_BILINGUAL[questionIndex];
+  const currentQuestion = questions[questionIndex];
   const labels = copy[displayLanguage];
   const isComplete = answered.every(Boolean);
-  const progress = ((questionIndex + 1) / MODEL2_QUESTIONS_BILINGUAL.length) * 100;
+  const progress = ((questionIndex + 1) / 10) * 100;
 
-  useEffect(() => () => {
-    if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
-  }, []);
+  async function loadQuestions() {
+    setLoadingQuestions(true);
+    setError("");
+    try {
+      const loadedQuestions = await fetchModel2Questions();
+      setQuestions(loadedQuestions);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : labels.error);
+    } finally {
+      setLoadingQuestions(false);
+    }
+  }
+
+  useEffect(() => { void loadQuestions(); }, []);
 
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -124,41 +144,24 @@ export default function Model2QuizCard() {
     setAnswers((current) => current.map((answer, index) => index === questionIndex ? value : answer));
     setAnswered((current) => current.map((wasAnswered, index) => index === questionIndex ? true : wasAnswered));
 
-    if (questionIndex === MODEL2_QUESTIONS_BILINGUAL.length - 1) return;
-
-    if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
-    advanceTimer.current = window.setTimeout(() => {
-      setQuestionIndex((current) => Math.min(current + 1, MODEL2_QUESTIONS_BILINGUAL.length - 1));
-      advanceTimer.current = null;
-    }, 220);
   }
 
   function goBack() {
-    if (advanceTimer.current !== null) {
-      window.clearTimeout(advanceTimer.current);
-      advanceTimer.current = null;
-    }
     setQuestionIndex((current) => Math.max(0, current - 1));
     setError("");
   }
 
   async function submitAssessment() {
-    if (!isComplete || submitting) return;
-    const loadingStartedAt = Date.now();
-    const minimumLoadingDuration = 4000;
+    if (!isComplete || submitting || questions.length !== 10) return;
     setSubmitting(true);
     setError("");
     try {
       const prediction = await predictCareerForModel2(answers);
       recordPrediction(prediction);
       setResult(prediction);
-    } catch {
-      setError(labels.error);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : labels.error);
     } finally {
-      const remainingLoadingTime = minimumLoadingDuration - (Date.now() - loadingStartedAt);
-      if (remainingLoadingTime > 0) {
-        await new Promise((resolve) => window.setTimeout(resolve, remainingLoadingTime));
-      }
       setSubmitting(false);
     }
   }
@@ -169,6 +172,7 @@ export default function Model2QuizCard() {
     setQuestionIndex(0);
     setResult(null);
     setError("");
+    setShowAllMatches(false);
   }
 
   if (submitting) {
@@ -189,6 +193,18 @@ export default function Model2QuizCard() {
         </div>
       </section>
     );
+  }
+
+  if (loadingQuestions || (!currentQuestion && !error)) {
+    return <section className="app-page-shell learning-page-shell exploration-quiz-page"><div className="exploration-quiz-loading" role="status">{labels.loadingQuestions}</div></section>;
+  }
+
+  if (!questions.length) {
+    return <section className="app-page-shell learning-page-shell exploration-quiz-page"><div className="exploration-quiz-content">
+      <p className="exploration-quiz-eyebrow">{labels.eyebrow}</p>
+      <p className="exploration-quiz-error" role="alert">{error || labels.error}</p>
+      <Button type="button" onClick={() => void loadQuestions()}>{labels.retry}</Button>
+    </div></section>;
   }
 
   if (result) {
@@ -284,7 +300,7 @@ export default function Model2QuizCard() {
           role="progressbar"
           aria-label={labels.question(questionIndex + 1)}
           aria-valuemin={1}
-          aria-valuemax={MODEL2_QUESTIONS_BILINGUAL.length}
+          aria-valuemax={10}
           aria-valuenow={questionIndex + 1}
         >
           <span style={{ width: `${progress}%` }} />
@@ -292,14 +308,11 @@ export default function Model2QuizCard() {
 
         <div className="exploration-quiz-meta">
           <p className="exploration-quiz-step">{labels.question(questionIndex + 1)}</p>
-          <div className="exploration-quiz-language" aria-label="Display language">
-            <button type="button" className={displayLanguage === "en" ? "is-active" : ""} aria-pressed={displayLanguage === "en"} onClick={() => setDisplayLanguage("en")}>EN</button>
-            <button type="button" className={displayLanguage === "my" ? "is-active" : ""} aria-pressed={displayLanguage === "my"} onClick={() => setDisplayLanguage("my")}>မြန်မာ</button>
-          </div>
+          <span className="exploration-quiz-language" aria-label="မေးခွန်းဘာသာစကား">မြန်မာ</span>
         </div>
 
         <p className="exploration-quiz-eyebrow">{labels.eyebrow}</p>
-        <h1 className="exploration-quiz-question">{currentQuestion.text[displayLanguage]}</h1>
+        <h1 className="exploration-quiz-question">{currentQuestion.text}</h1>
 
         <div className="exploration-quiz-options" data-option-count={currentQuestion.options.length}>
           {currentQuestion.options.map((option) => {
@@ -313,7 +326,7 @@ export default function Model2QuizCard() {
                 disabled={submitting}
                 onClick={() => chooseOption(option.value)}
               >
-                {option.label[displayLanguage]}
+                {option.label}
               </button>
             );
           })}
@@ -322,7 +335,9 @@ export default function Model2QuizCard() {
         {error && <p className="exploration-quiz-error" role="alert">{error}</p>}
         <div className="exploration-quiz-actions">
           <Button type="button" variant="outline" onClick={goBack} disabled={questionIndex === 0 || submitting}>{labels.back}</Button>
-          {questionIndex === MODEL2_QUESTIONS_BILINGUAL.length - 1 && (
+          {questionIndex < 9 ? (
+            <Button type="button" onClick={() => setQuestionIndex((current) => Math.min(current + 1, 9))} disabled={!answered[questionIndex]}>{labels.continue}</Button>
+          ) : (
             <Button type="button" onClick={() => void submitAssessment()} disabled={!isComplete || submitting}>
               {labels.submit}
             </Button>
