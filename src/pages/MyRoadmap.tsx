@@ -201,7 +201,7 @@ export default function MyRoadmap() {
             <h2>{t("roadmap.noRoadmapTitle")}</h2>
             <p>{t("roadmap.noRoadmapDescription")}</p>
             <Button asChild className="mt-5">
-              <Link to="/app/explore">{t("roadmap.exploreCareers")}</Link>
+              <Link to="/app/assessment/goal">{t("careers.goalCardAction")}</Link>
             </Button>
           </CardContent>
         </Card>
