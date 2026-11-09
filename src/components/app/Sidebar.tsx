@@ -99,10 +99,16 @@ export default function Sidebar({
     <aside className={`app-sidebar ${effectiveCollapsed ? "app-sidebar--collapsed" : ""} ${drawer ? "app-sidebar--drawer" : ""}`}>
       <img className="app-sidebar-decoration" src={astronaut} alt="" aria-hidden="true" />
       <div className="app-sidebar-brand-row">
-        <span className="app-sidebar-brand-lockup">
+        <NavLink
+          to="/app/explore"
+          onClick={onNavigate}
+          className="app-sidebar-brand-lockup no-underline"
+          aria-label="The Way home"
+          title="The Way home"
+        >
           <BrandMark />
           <span className="app-sidebar-brand">The Way</span>
-        </span>
+        </NavLink>
         {onCollapseToggle ? (
           <button
             type="button"

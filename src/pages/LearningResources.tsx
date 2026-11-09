@@ -155,6 +155,9 @@ export default function LearningResources() {
   const typeFilter = searchParams.get("type") ?? "all";
   const roleFilter = searchParams.get("role") ?? "all";
   const levelFilter = searchParams.get("level") ?? "all";
+  const hasActiveFilters = Boolean(
+    query.trim() || skillFilter || typeFilter !== "all" || roleFilter !== "all" || levelFilter !== "all"
+  );
   const roadmap = getRoadmapById(learning.state?.roadmapId);
   const career = getCareerById(learning.state?.selectedCareerId);
   const currentStage = roadmap?.stages.find((stage) => stage.id === learning.state?.currentStageId) ?? roadmap?.stages[0];
@@ -206,7 +209,7 @@ export default function LearningResources() {
   }, []);
 
   const filteredResources = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const searchTerms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
     return expandedCatalog.filter((resource) => {
       const matchesSkill = !skillFilter || resource.skills.includes(skillFilter);
@@ -220,14 +223,20 @@ export default function LearningResources() {
         localize(resource.title, language),
         localize(resource.description, language),
         resource.provider,
-        ...resource.skills,
-        ...resource.roles
+        ...resource.skills.flatMap((skillId) => {
+          const skill = getSkillById(skillId)?.skill;
+          return [skillId, ...(skill ? [localize(skill.name, language)] : [])];
+        }),
+        ...resource.roles.flatMap((roleId) => {
+          const role = getCareerById(roleId);
+          return [roleId, ...(role ? [localize(role.name, language)] : [])];
+        })
       ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+        .filter((value): value is string => Boolean(value))
+        .map((value) => value.toLowerCase());
 
-      return matchesSkill && matchesType && matchesRole && matchesLevel && (!normalizedQuery || searchable.includes(normalizedQuery));
+      const matchesQuery = searchTerms.every((term) => searchable.some((value) => value.includes(term)));
+      return matchesSkill && matchesType && matchesRole && matchesLevel && matchesQuery;
     });
   }, [expandedCatalog, language, levelFilter, query, roleFilter, skillFilter, typeFilter]);
 
@@ -251,6 +260,7 @@ export default function LearningResources() {
       next.delete("role");
       next.delete("level");
       next.delete("skill");
+      next.delete("q");
       return next;
     });
   }
@@ -278,154 +288,209 @@ export default function LearningResources() {
         />
       </div>
 
-      {recommendedResource ? (
-        <section className="learning-section" aria-labelledby="recommended-resource-title">
+      {hasActiveFilters ? (
+        <section className="learning-section" aria-labelledby="resource-search-results">
           <SectionHeading
-            id="recommended-resource-title"
-            eyebrow={t("resources.recommended")}
-            title={localize(recommendedResource.title, language)}
-            description={currentSkill ? t("resources.recommendedReason", { skill: localize(currentSkill.name, language) }) : undefined}
+            id="resource-search-results"
+            title={t("resources.browseAllTitle")}
+            description={t("resources.browseAllDescription")}
           />
-          <div className="featured-resource-wrap">
-            <ResourceCard resource={recommendedResource} featured onFeedback={handleFeedback} />
+
+          <div className="resource-filter-desktop">
+            <ResourceFilters type={typeFilter} role={roleFilter} level={levelFilter} onChange={updateParam} />
+            <Button type="button" variant="ghost" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
           </div>
-        </section>
-      ) : null}
 
-      {currentStage ? (
-        <section className="learning-section" aria-labelledby="current-stage-resources">
-          <SectionHeading
-            id="current-stage-resources"
-            eyebrow={career ? localize(career.name, language) : undefined}
-            title={t("resources.currentRoadmapStage")}
-            description={`${localize(currentStage.title, language)} · ${t("resources.currentStageDescription")}`}
-            action={<Button asChild variant="outline"><Link to="/app/roadmap">{t("resources.viewRoadmap")}</Link></Button>}
-          />
-          <div className="learning-card-grid">
-            {currentStage.skills
-              .flatMap((skill) => skill.resourceIds)
-              .filter((id, index, ids) => ids.indexOf(id) === index)
-              .map(getResourceById)
-              .filter(Boolean)
-              .slice(0, 3)
-              .map((resource) => <ResourceCard key={resource!.id} resource={resource!} onFeedback={handleFeedback} />)}
+          <div className="resource-filter-mobile">
+            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline"><span aria-hidden="true">☷</span>{t("common.filters")}</Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="resource-filter-sheet">
+                <SheetHeader>
+                  <SheetTitle>{t("common.filters")}</SheetTitle>
+                  <SheetDescription>{t("resources.browseAllDescription")}</SheetDescription>
+                </SheetHeader>
+                <ResourceFilters type={typeFilter} role={roleFilter} level={levelFilter} onChange={updateParam} />
+                <div className="resource-filter-sheet-actions">
+                  <Button type="button" variant="ghost" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
+                  <SheetClose asChild>
+                    <Button>{t("resources.showResults", { count: String(filteredResources.length) })}</Button>
+                  </SheetClose>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-        </section>
-      ) : null}
 
-      <section className="learning-section" aria-labelledby="continue-learning-title">
-        <SectionHeading id="continue-learning-title" title={t("resources.continue")} />
-        <div className="continue-learning-list">
-          {learningResources.slice(0, 3).map((resource, index) => (
-            <Link key={resource.id} to={resource.internalPath ?? resource.url ?? "/app/resources"} target={resource.url ? "_blank" : undefined} rel={resource.url ? "noreferrer" : undefined}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <div>
-                <strong>{localize(resource.title, language)}</strong>
-                <p>{resource.provider} · {resource.duration ? localize(resource.duration, language) : ""}</p>
-              </div>
-              <span aria-hidden="true">→</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="learning-section" aria-labelledby="project-library-title">
-        <SectionHeading
-          id="project-library-title"
-          title={t("resources.projects")}
-          description={t("resources.projectsDescription")}
-        />
-        <div className="learning-card-grid">
-          {(relatedProjects.length ? relatedProjects : projects).slice(0, 3).map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      </section>
-
-      <section className="learning-section" aria-labelledby="guides-title">
-        <SectionHeading id="guides-title" title={t("resources.guides")} description={t("resources.guidesDescription")} />
-        <div className="learning-card-grid">
-          {guides.slice(0, 3).map((guide) => <GuideCard key={guide.id} guideSlug={guide.slug} />)}
-        </div>
-      </section>
-
-      <section className="learning-section" aria-labelledby="interview-prep-title">
-        <SectionHeading
-          id="interview-prep-title"
-          title={t("resources.interviewPrep")}
-          description={t("resources.interviewDescription")}
-        />
-        <Tabs defaultValue="behavioral">
-          <div className="scrolling-tabs-wrap">
-            <TabsList>
-              <TabsTrigger value="behavioral">{t("interview.behavioral")}</TabsTrigger>
-              <TabsTrigger value="technical">{t("interview.technical")}</TabsTrigger>
-              <TabsTrigger value="system-design">{t("interview.systemDesign")}</TabsTrigger>
-              <TabsTrigger value="role-specific">{t("interview.roleSpecific")}</TabsTrigger>
-            </TabsList>
-          </div>
-          {(["behavioral", "technical", "system-design", "role-specific"] as const).map((category) => (
-            <TabsContent key={category} value={category}>
-              <div className="learning-card-grid">
-                {interviewQuestions.filter((question) => question.category === category).map((question) => (
-                  <InterviewQuestionCard key={question.id} questionSlug={question.slug} />
+          {filteredResources.length ? (
+            <>
+              <p className="resource-results-count" role="status">{t("common.results", { count: String(filteredResources.length) })}</p>
+              <div className="learning-card-grid resource-browse-grid" aria-live="polite">
+                {filteredResources.map((resource) => (
+                  <ResourceCard key={resource.id} resource={resource} onFeedback={handleFeedback} />
                 ))}
               </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </section>
-
-      <section className="learning-section" aria-labelledby="browse-all-resources">
-        <SectionHeading
-          id="browse-all-resources"
-          title={t("resources.browseAllTitle")}
-          description={t("resources.browseAllDescription")}
-        />
-
-        <div className="resource-filter-desktop">
-          <ResourceFilters type={typeFilter} role={roleFilter} level={levelFilter} onChange={updateParam} />
-          <Button type="button" variant="ghost" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
-        </div>
-
-        <div className="resource-filter-mobile">
-          <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline"><span aria-hidden="true">☷</span>{t("common.filters")}</Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="resource-filter-sheet">
-              <SheetHeader>
-                <SheetTitle>{t("common.filters")}</SheetTitle>
-                <SheetDescription>{t("resources.browseAllDescription")}</SheetDescription>
-              </SheetHeader>
-              <ResourceFilters type={typeFilter} role={roleFilter} level={levelFilter} onChange={updateParam} />
-              <div className="resource-filter-sheet-actions">
-                <Button type="button" variant="ghost" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
-                <SheetClose asChild>
-                  <Button>{t("resources.showResults", { count: String(filteredResources.length) })}</Button>
-                </SheetClose>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-
-        {filteredResources.length ? (
-          <>
-            <p className="resource-results-count" role="status">{t("common.results", { count: String(filteredResources.length) })}</p>
-            <div className="learning-card-grid resource-browse-grid">
-              {filteredResources.map((resource) => (
-                <ResourceCard key={resource.id} resource={resource} onFeedback={handleFeedback} />
-              ))}
+            </>
+          ) : (
+            <div className="empty-state-card" role="status">
+              <h3>{t("resources.noResultsTitle")}</h3>
+              <p>{t("resources.noResultsDescription")}</p>
+              <Button type="button" variant="outline" className="mt-5" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
             </div>
-          </>
-        ) : (
-          <div className="empty-state-card" role="status">
-            <h3>{t("resources.noResultsTitle")}</h3>
-            <p>{t("resources.noResultsDescription")}</p>
-            <Button type="button" variant="outline" className="mt-5" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
+          )}
+        </section>
+      ) : (
+        <>
+        {recommendedResource ? (
+          <section className="learning-section" aria-labelledby="recommended-resource-title">
+            <SectionHeading
+              id="recommended-resource-title"
+              eyebrow={t("resources.recommended")}
+              title={localize(recommendedResource.title, language)}
+              description={currentSkill ? t("resources.recommendedReason", { skill: localize(currentSkill.name, language) }) : undefined}
+            />
+            <div className="featured-resource-wrap">
+              <ResourceCard resource={recommendedResource} featured onFeedback={handleFeedback} />
+            </div>
+          </section>
+        ) : null}
+
+        {currentStage ? (
+          <section className="learning-section" aria-labelledby="current-stage-resources">
+            <SectionHeading
+              id="current-stage-resources"
+              eyebrow={career ? localize(career.name, language) : undefined}
+              title={t("resources.currentRoadmapStage")}
+              description={`${localize(currentStage.title, language)} · ${t("resources.currentStageDescription")}`}
+              action={<Button asChild variant="outline"><Link to="/app/roadmap">{t("resources.viewRoadmap")}</Link></Button>}
+            />
+            <div className="learning-card-grid">
+              {currentStage.skills
+                .flatMap((skill) => skill.resourceIds)
+                .filter((id, index, ids) => ids.indexOf(id) === index)
+                .map(getResourceById)
+                .filter(Boolean)
+                .slice(0, 3)
+                .map((resource) => <ResourceCard key={resource!.id} resource={resource!} onFeedback={handleFeedback} />)}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="learning-section" aria-labelledby="continue-learning-title">
+          <SectionHeading id="continue-learning-title" title={t("resources.continue")} />
+          <div className="continue-learning-list">
+            {learningResources.slice(0, 3).map((resource, index) => (
+              <Link key={resource.id} to={resource.internalPath ?? resource.url ?? "/app/resources"} target={resource.url ? "_blank" : undefined} rel={resource.url ? "noreferrer" : undefined}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <strong>{localize(resource.title, language)}</strong>
+                  <p>{resource.provider} · {resource.duration ? localize(resource.duration, language) : ""}</p>
+                </div>
+                <span aria-hidden="true">→</span>
+              </Link>
+            ))}
           </div>
-        )}
-      </section>
+        </section>
+
+        <section className="learning-section" aria-labelledby="project-library-title">
+          <SectionHeading
+            id="project-library-title"
+            title={t("resources.projects")}
+            description={t("resources.projectsDescription")}
+          />
+          <div className="learning-card-grid">
+            {(relatedProjects.length ? relatedProjects : projects).slice(0, 3).map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        </section>
+
+        <section className="learning-section" aria-labelledby="guides-title">
+          <SectionHeading id="guides-title" title={t("resources.guides")} description={t("resources.guidesDescription")} />
+          <div className="learning-card-grid">
+            {guides.slice(0, 3).map((guide) => <GuideCard key={guide.id} guideSlug={guide.slug} />)}
+          </div>
+        </section>
+
+        <section className="learning-section" aria-labelledby="interview-prep-title">
+          <SectionHeading
+            id="interview-prep-title"
+            title={t("resources.interviewPrep")}
+            description={t("resources.interviewDescription")}
+          />
+          <Tabs defaultValue="behavioral">
+            <div className="scrolling-tabs-wrap">
+              <TabsList>
+                <TabsTrigger value="behavioral">{t("interview.behavioral")}</TabsTrigger>
+                <TabsTrigger value="technical">{t("interview.technical")}</TabsTrigger>
+                <TabsTrigger value="system-design">{t("interview.systemDesign")}</TabsTrigger>
+                <TabsTrigger value="role-specific">{t("interview.roleSpecific")}</TabsTrigger>
+              </TabsList>
+            </div>
+            {(["behavioral", "technical", "system-design", "role-specific"] as const).map((category) => (
+              <TabsContent key={category} value={category}>
+                <div className="learning-card-grid">
+                  {interviewQuestions.filter((question) => question.category === category).map((question) => (
+                    <InterviewQuestionCard key={question.id} questionSlug={question.slug} />
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </section>
+
+        <section className="learning-section" aria-labelledby="browse-all-resources">
+          <SectionHeading
+            id="browse-all-resources"
+            title={t("resources.browseAllTitle")}
+            description={t("resources.browseAllDescription")}
+          />
+
+          <div className="resource-filter-desktop">
+            <ResourceFilters type={typeFilter} role={roleFilter} level={levelFilter} onChange={updateParam} />
+            <Button type="button" variant="ghost" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
+          </div>
+
+          <div className="resource-filter-mobile">
+            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline"><span aria-hidden="true">☷</span>{t("common.filters")}</Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="resource-filter-sheet">
+                <SheetHeader>
+                  <SheetTitle>{t("common.filters")}</SheetTitle>
+                  <SheetDescription>{t("resources.browseAllDescription")}</SheetDescription>
+                </SheetHeader>
+                <ResourceFilters type={typeFilter} role={roleFilter} level={levelFilter} onChange={updateParam} />
+                <div className="resource-filter-sheet-actions">
+                  <Button type="button" variant="ghost" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
+                  <SheetClose asChild>
+                    <Button>{t("resources.showResults", { count: String(filteredResources.length) })}</Button>
+                  </SheetClose>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {filteredResources.length ? (
+            <>
+              <p className="resource-results-count" role="status">{t("common.results", { count: String(filteredResources.length) })}</p>
+              <div className="learning-card-grid resource-browse-grid">
+                {filteredResources.map((resource) => (
+                  <ResourceCard key={resource.id} resource={resource} onFeedback={handleFeedback} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="empty-state-card" role="status">
+              <h3>{t("resources.noResultsTitle")}</h3>
+              <p>{t("resources.noResultsDescription")}</p>
+              <Button type="button" variant="outline" className="mt-5" onClick={clearFilters}>{t("resources.clearFilters")}</Button>
+            </div>
+          )}
+        </section>
+        </>
+      )}
 
       {toast ? <InlineToast message={toast.message} tone={toast.tone} onDismiss={dismissToast} /> : null}
     </section>

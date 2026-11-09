@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import StarField from "../effects/StarField";
 import { CloseIcon, MenuIcon } from "./AppIcons";
 import Sidebar from "./Sidebar";
@@ -101,10 +101,10 @@ export default function AppShell() {
         >
           <MenuIcon className="h-5 w-5" />
         </button>
-        <span className="app-mobile-brand">
+        <Link to="/app/explore" className="app-mobile-brand no-underline" aria-label="The Way home">
           <BrandMark size="sm" />
           The Way
-        </span>
+        </Link>
       </header>
 
       <div className={`app-drawer-backdrop ${isDrawerOpen ? "app-drawer-backdrop--open" : ""}`}>
