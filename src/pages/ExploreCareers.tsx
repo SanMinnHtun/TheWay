@@ -28,16 +28,17 @@ export default function ExploreCareers() {
   const recommendations = getCareerRecommendations(mode);
   const selectedCareer = getCareerById(learning.state?.selectedCareerId);
   const targetCareer = selectedCareer ?? recommendations[0];
+  const isSearching = query.trim().length > 0;
 
   const filteredCareers = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const searchTerms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
     return careers.filter((career) => {
       if (category !== "all" && career.category !== category) {
         return false;
       }
 
-      if (!normalized) {
+      if (searchTerms.length === 0) {
         return true;
       }
 
@@ -48,10 +49,9 @@ export default function ExploreCareers() {
         ...career.coreStack,
         ...career.skillGroups.flatMap((group) => group.skills)
       ]
-        .join(" ")
-        .toLowerCase();
+        .map((value) => value.toLowerCase());
 
-      return searchable.includes(normalized);
+      return searchTerms.every((term) => searchable.some((value) => value.includes(term)));
     });
   }, [category, language, query]);
 
@@ -112,70 +112,89 @@ export default function ExploreCareers() {
         />
       </div>
 
-      <section className="learning-section" aria-labelledby="career-recommendations">
-        <SectionHeading
-          id="career-recommendations"
-          eyebrow={mode === "GOAL" ? t("careers.currentReadiness") : t("careers.recommendedForYou")}
-          title={mode === "GOAL" ? t("careers.targetCareer") : t("careers.recommendedForYou")}
-          description={mode === "GOAL" ? undefined : t("careers.basedOnStrengths")}
-        />
+      {isSearching ? (
+        <section className="learning-section" aria-labelledby="career-search-results">
+          <SectionHeading
+            id="career-search-results"
+            eyebrow={t("careers.categories")}
+            title={t("careers.catalogue")}
+            description={t("careers.catalogueDescription")}
+          />
 
-        {mode === "GOAL" ? (
-          <div className="featured-career-wrap">
-            <CareerCard career={targetCareer} mode={mode} featured />
-          </div>
-        ) : (
-          <div className="career-recommendation-grid">
-            {recommendations.map((career, index) => (
-              <CareerCard key={career.id} career={career} mode={mode} featured={index === 0} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="learning-section" aria-labelledby="career-catalogue">
-        <SectionHeading
-          id="career-catalogue"
-          eyebrow={t("careers.categories")}
-          title={t("careers.catalogue")}
-          description={t("careers.catalogueDescription")}
-        />
-
-        <Tabs value={category} onValueChange={(value) => setCategory(value as "all" | CareerCategory)}>
-          <div className="scrolling-tabs-wrap">
-            <TabsList aria-label={t("careers.categories")} className="career-category-tabs">
-              {careerCategories.map((item) => (
-                <TabsTrigger key={item.id} value={item.id}>
-                  {localize(item.label, language)}
-                </TabsTrigger>
+          {filteredCareers.length ? (
+            <div className="career-catalogue-grid" aria-live="polite">
+              {filteredCareers.map((career) => (
+                <CareerCard key={career.id} career={career} mode={mode} />
               ))}
-            </TabsList>
-          </div>
-        </Tabs>
+            </div>
+          ) : (
+            <div className="empty-state-card" role="status">
+              <h3>{t("careers.noResultsTitle", { query: query.trim() })}</h3>
+              <p>{t("careers.noResultsDescription")}</p>
+              <button
+                type="button"
+                className="app-secondary-link"
+                onClick={() => {
+                  setQuery("");
+                  setCategory("all");
+                }}
+              >
+                {t("careers.clearSearch")}
+              </button>
+            </div>
+          )}
+        </section>
+      ) : (
+        <>
+          <section className="learning-section" aria-labelledby="career-recommendations">
+            <SectionHeading
+              id="career-recommendations"
+              eyebrow={mode === "GOAL" ? t("careers.currentReadiness") : t("careers.recommendedForYou")}
+              title={mode === "GOAL" ? t("careers.targetCareer") : t("careers.recommendedForYou")}
+              description={mode === "GOAL" ? undefined : t("careers.basedOnStrengths")}
+            />
 
-        {filteredCareers.length ? (
-          <div className="career-catalogue-grid">
-            {filteredCareers.map((career) => (
-              <CareerCard key={career.id} career={career} mode={mode} />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state-card" role="status">
-            <h3>{t("careers.noResultsTitle", { query })}</h3>
-            <p>{t("careers.noResultsDescription")}</p>
-            <button
-              type="button"
-              className="app-secondary-link"
-              onClick={() => {
-                setQuery("");
-                setCategory("all");
-              }}
-            >
-              {t("careers.clearSearch")}
-            </button>
-          </div>
-        )}
-      </section>
+            {mode === "GOAL" ? (
+              <div className="featured-career-wrap">
+                <CareerCard career={targetCareer} mode={mode} featured />
+              </div>
+            ) : (
+              <div className="career-recommendation-grid">
+                {recommendations.map((career, index) => (
+                  <CareerCard key={career.id} career={career} mode={mode} featured={index === 0} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="learning-section" aria-labelledby="career-catalogue">
+            <SectionHeading
+              id="career-catalogue"
+              eyebrow={t("careers.categories")}
+              title={t("careers.catalogue")}
+              description={t("careers.catalogueDescription")}
+            />
+
+            <Tabs value={category} onValueChange={(value) => setCategory(value as "all" | CareerCategory)}>
+              <div className="scrolling-tabs-wrap">
+                <TabsList aria-label={t("careers.categories")} className="career-category-tabs">
+                  {careerCategories.map((item) => (
+                    <TabsTrigger key={item.id} value={item.id}>
+                      {localize(item.label, language)}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+            </Tabs>
+
+            <div className="career-catalogue-grid">
+              {filteredCareers.map((career) => (
+                <CareerCard key={career.id} career={career} mode={mode} />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
     </section>
   );
 }
