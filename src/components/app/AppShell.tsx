@@ -9,6 +9,7 @@ import LearningPageSkeleton from "../learning/LearningPageSkeleton";
 import { CareerRoadmapProvider } from "../../context/CareerRoadmapContext";
 import { PredictedRoadmapModal } from "../learning/PredictedCareerRoadmap";
 import BrandMark from "./BrandMark";
+import AmbientGalaxy from "../effects/AmbientGalaxy";
 
 function getStoredCollapsedState() {
   if (typeof window === "undefined") {
@@ -73,6 +74,7 @@ export default function AppShell() {
     <LearningExperienceProvider>
       <CareerRoadmapProvider>
       <div className={`app-shell ${isCollapsed ? "app-shell--collapsed" : ""}`}>
+      <AmbientGalaxy />
       <StarField
         className="app-star-field"
         density={isAssistantRoute ? 0.76 : 0.36}

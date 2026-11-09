@@ -112,6 +112,33 @@ service cloud.firestore {
       allow delete: if ownsProfile(userId) && documentId == "roadmap";
     }
 
+    match /users/{userId}/assessment_results/{assessmentId} {
+      allow read: if ownsProfile(userId);
+
+      allow create: if ownsProfile(userId)
+        && request.resource.data.keys().hasOnly([
+          "userId",
+          "modelType",
+          "answers",
+          "result",
+          "createdAt"
+        ])
+        && request.resource.data.keys().hasAll([
+          "userId",
+          "modelType",
+          "answers",
+          "result",
+          "createdAt"
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.modelType == "MODEL_1"
+        && request.resource.data.answers is map
+        && (request.resource.data.result is map || request.resource.data.result is list)
+        && request.resource.data.createdAt == request.time;
+
+      allow update, delete: if false;
+    }
+
     function learningProgressKeys() {
       return [
         "uid",

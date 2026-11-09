@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import StarField from "./effects/StarField";
+import AmbientGalaxy from "./effects/AmbientGalaxy";
 import BrandMark from "./app/BrandMark";
 import { getAuthErrorMessage, signInWithGoogle } from "../services/firebaseAuth";
 import { isAssessmentTrack, readAssessmentTrack, saveAssessmentTrack } from "../services/assessmentTrack";
@@ -151,8 +152,9 @@ export default function AuthPage() {
   const isButtonDisabled = isSigningIn || isAuthLoading;
 
   return (
-    <main className="min-h-[100dvh] overflow-hidden bg-[#02090f] text-white page-transition">
+    <main className="min-h-[100dvh] overflow-hidden bg-[#02090f] text-white">
       <div className="landing-shell flex min-h-[100dvh] flex-col !pb-8 !pt-6 sm:!px-8 sm:!pt-8">
+        <AmbientGalaxy />
         <StarField density={0.72} intensity={0.58} speed={0.82} />
         <div className="glow glow-left" />
         <div className="glow glow-bottom" />

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import StarField from "./components/effects/StarField";
+import AmbientGalaxy from "./components/effects/AmbientGalaxy";
 import { useAuth } from "./context/AuthContext";
 import { useRevealOnView } from "./hooks/useRevealOnView";
 import { saveAssessmentTrack } from "./services/assessmentTrack";
@@ -193,8 +194,9 @@ export default function App() {
   }
 
   return (
-    <main className={`min-h-screen overflow-hidden bg-[#02090f] text-white page-transition ${choosingTrack ? "page-transition--exit" : ""}`}>
+    <main className={`min-h-screen overflow-hidden bg-[#02090f] text-white ${choosingTrack ? "page-transition--exit" : ""}`}>
       <div className="landing-shell">
+        <AmbientGalaxy />
         <StarField density={1.18} intensity={0.98} />
         <div className="glow glow-left" />
         <div className="glow glow-bottom" />

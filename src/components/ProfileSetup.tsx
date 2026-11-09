@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEven
 import spaceBg from "../assets/bg.png";
 import astronautImg from "../assets/astronaut.png";
 import StarField from "./effects/StarField";
+import AmbientGalaxy from "./effects/AmbientGalaxy";
 import { useAuth } from "../context/AuthContext";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useI18n } from "../i18n/I18nContext";
@@ -229,9 +230,10 @@ export default function ProfileSetup() {
 
   return (
     <main
-      className="profile-page page-transition min-h-screen bg-cover bg-center bg-no-repeat px-5 py-10 text-white sm:px-8 lg:px-12"
+      className="profile-page min-h-screen bg-cover bg-center bg-no-repeat px-5 py-10 text-white sm:px-8 lg:px-12"
       style={{ backgroundImage: `linear-gradient(116deg, rgba(2, 9, 15, 0.18), rgba(2, 9, 15, 0.78)), url(${spaceBg})` }}
     >
+      <AmbientGalaxy profile />
       <StarField className="profile-star-field" density={0.62} intensity={0.46} speed={0.72} />
       <div className="glow glow-left profile-glow-left" />
       <div className="glow glow-bottom profile-glow-bottom" />
