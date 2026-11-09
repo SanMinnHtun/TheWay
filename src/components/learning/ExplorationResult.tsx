@@ -1,8 +1,8 @@
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { getCareerById, getResourceById, getRoadmapById, learningResources } from "../../data/learningCatalog";
-import { getCareerIdForQuizRole } from "../../data/explorationQuiz";
+import { getResourcesForModel1Role } from "../../data/model1Recommendations";
 import { localize, type LearningResource } from "../../types/learning";
+import { getModel1RoleMatches, type Model1RoleMatch } from "../../services/model1Result";
 import {
   Sheet,
   SheetContent,
@@ -13,11 +13,6 @@ import {
 
 type Language = "en" | "my";
 type DataRecord = Record<string, unknown>;
-
-interface RoleMatch {
-  role: string;
-  percentage: number;
-}
 
 const labels = {
   en: {
@@ -138,35 +133,7 @@ function DynamicValue({ value, depth = 0 }: { value: unknown; depth?: number }):
   return <span>{String(value)}</span>;
 }
 
-function readRoleMatch(value: unknown): RoleMatch | null {
-  if (!isRecord(value)) return null;
-  const role = findField(value, ["role", "career", "name", "path"]);
-  const percentage = findField(value, ["percentage", "score", "match", "fit"]);
-  const parsedPercentage = typeof percentage === "number" ? percentage : Number(percentage);
-
-  if (typeof role !== "string" || !Number.isFinite(parsedPercentage)) return null;
-  return { role, percentage: Math.max(0, Math.min(100, parsedPercentage)) };
-}
-
-function findRoleMatches(data: DataRecord): { primary: RoleMatch | null; matches: RoleMatch[] } {
-  const primary = readRoleMatch(findField(data, ["primary_recommendation", "primaryRecommendation", "top_match"]));
-  const runnerUp = readRoleMatch(findField(data, ["runner_up", "runnerUp", "second_recommendation"]));
-  const all = findField(data, ["all_role_percentages", "allRolePercentages", "role_percentages", "career_matches"]);
-  const matches = Array.isArray(all)
-    ? all.map(readRoleMatch).filter((match): match is RoleMatch => match !== null)
-    : [];
-
-  for (const fallback of [primary, runnerUp]) {
-    if (fallback && !matches.some((match) => normalizeKey(match.role) === normalizeKey(fallback.role))) {
-      matches.push(fallback);
-    }
-  }
-
-  matches.sort((a, b) => b.percentage - a.percentage);
-  return { primary: primary ?? matches[0] ?? null, matches };
-}
-
-function matchesToGradient(matches: RoleMatch[]) {
+function matchesToGradient(matches: Model1RoleMatch[]) {
   const total = matches.reduce((sum, match) => sum + match.percentage, 0) || 1;
   let position = 0;
   const stops = matches.map((match, index) => {
@@ -175,41 +142,6 @@ function matchesToGradient(matches: RoleMatch[]) {
     return `${roleColors[index % roleColors.length]} ${start}deg ${position}deg`;
   });
   return `conic-gradient(${stops.join(", ")})`;
-}
-
-function getRecommendedResources(role: string): LearningResource[] {
-  const careerId = getCareerIdForQuizRole(role);
-  const career = getCareerById(careerId);
-  const roadmap = getRoadmapById(career?.roadmapId);
-  const recommendations: LearningResource[] = [];
-  const seen = new Set<string>();
-  const add = (resource?: LearningResource) => {
-    if (resource && !seen.has(resource.id)) {
-      seen.add(resource.id);
-      recommendations.push(resource);
-    }
-  };
-
-  roadmap?.stages.forEach((stage) => stage.skills.forEach((skill) => {
-    skill.resourceIds.forEach((resourceId) => add(getResourceById(resourceId)));
-  }));
-
-  if (career) {
-    const careerSkillIds = new Set(career.skillGroups.flatMap((group) => group.skills));
-    learningResources
-      .filter((resource) => resource.roles.includes(career.id))
-      .forEach(add);
-    learningResources
-      .filter((resource) => resource.skills.some((skillId) => careerSkillIds.has(skillId)))
-      .forEach(add);
-    // Broad beginner resources such as Git help learners in any role.
-    learningResources
-      .filter((resource) => resource.roles.length > 1)
-      .forEach(add);
-  }
-
-  if (recommendations.length < 3) learningResources.forEach(add);
-  return recommendations.slice(0, 3);
 }
 
 function RecommendedSources({ role, resources, language, title, subtitle, openLabel, emptyLabel }: {
@@ -285,7 +217,7 @@ function scoreEntries(value: unknown): Array<{ label: string; score: number }> {
   return entries;
 }
 
-function ScoreList({ matches, compact = false }: { matches: RoleMatch[]; compact?: boolean }) {
+function ScoreList({ matches, compact = false }: { matches: Model1RoleMatch[]; compact?: boolean }) {
   return (
     <div className={`exploration-score-list ${compact ? "exploration-score-list--compact" : ""}`}>
       {matches.map((match, index) => (
@@ -326,10 +258,9 @@ export default function ExplorationResult({
     return <section className="exploration-result-card"><DynamicValue value={data} /></section>;
   }
 
-  const { primary, matches } = findRoleMatches(data);
-  const runnerUp = readRoleMatch(findField(data, ["runner_up", "runnerUp", "second_recommendation"]));
+  const { primary, matches } = getModel1RoleMatches(data);
   const hasStructuredMatches = matches.length > 0;
-  const topRoleResources = primary ? getRecommendedResources(primary.role) : [];
+  const topRoleResources = primary ? getResourcesForModel1Role(primary.role, 3) : [];
 
   if (hasStructuredMatches && primary) {
     return (
@@ -356,9 +287,6 @@ export default function ExplorationResult({
               </div>
               <ScoreList matches={matches.slice(0, 4)} compact />
             </div>
-            {runnerUp && !matches.some((match) => normalizeKey(match.role) === normalizeKey(runnerUp.role)) ? (
-              <p className="exploration-runner-up">{runnerUp.role} · {Math.round(runnerUp.percentage)}%</p>
-            ) : null}
           </section>
 
           <RecommendedSources

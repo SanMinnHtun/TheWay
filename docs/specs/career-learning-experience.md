@@ -49,9 +49,9 @@ Core entities:
 
 ## Personalization
 
-Until assessment-result persistence is connected, recommendation scores are deterministic catalog/service data selected by the user's profile mode. They must be isolated from JSX and clearly presented as guidance, not as live AI inference.
+Explore-track recommendation scores come from the latest Model 1 backend result. Save each completed result under the authenticated user's `users/{uid}/assessment_results` collection and render the returned role percentages without replacing them with catalog scores. Map result roles to known catalog careers only for roadmap and resource links; choose learning resources through that mapped career's roadmap, role tags, and skill tags. Do not fill gaps with unrelated resources.
 
-- `EXPLORE`: show ranked recommendations based on interests-and-strengths framing.
+- `EXPLORE`: show ranked recommendations and percentages from the latest Model 1 result. Before a result exists, invite the learner to take the assessment instead of showing sample percentages.
 - `GOAL`: highlight the selected target career and current readiness framing.
 
 Starting a roadmap is idempotent. It selects one career, initializes progress only when no matching progress exists, and navigates to My Roadmap. Starting the same roadmap again must not create a duplicate.
@@ -79,7 +79,7 @@ Firestore stores one document at `learningProgress/{uid}`. The document ID must 
 
 The page order is title, the two career-track action cards, the current-track badge, search, personalized recommendation, categories, and the full catalog. Search matches role names, categories, stack, and skills. Category controls use accessible tabs and may scroll horizontally on small screens.
 
-After Model 1 assessment submission, show the backend's ranked career matches and provide a scrollable side sheet for the complete ranking. The recommended role can be connected to its known static catalog roadmap through the existing learning-progress flow.
+After Model 1 assessment submission, show the backend's ranked career matches and provide a scrollable side sheet for the complete ranking. Persist the immutable result per user so Explore Careers can show it after navigation and refresh. Show the returned percentages on the mapped career cards. Recommend resources only from the top match's mapped roadmap and directly related role or skill tags. The recommended role can be connected to its known static catalog roadmap through the existing learning-progress flow.
 
 Career cards expose only the decision-making metadata needed for comparison: role, summary, core stack, stage/skill counts, and match/readiness context. Career Detail owns the deeper content: responsibilities, fit reasoning, grouped core skills, roadmap preview, related projects, and start/open-roadmap action.
 

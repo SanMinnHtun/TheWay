@@ -41,10 +41,13 @@ Fields:
 - `fitScores`
 - `recommendedPath`
 - `reasoning`
+- `result` (complete backend response used to render the latest ranked matches)
 - `createdAt`
 
 Rules:
 
+- Assessment results are stored at `users/{uid}/assessment_results/{assessmentId}` and the document ID is unique per submission.
+- Only the owning authenticated user can read or create results; completed results are immutable.
 - A user can have many assessment results.
 - Results are immutable after completion except for metadata corrections.
 - Retakes create new results.

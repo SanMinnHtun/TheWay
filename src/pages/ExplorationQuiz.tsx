@@ -7,9 +7,12 @@ import { Button } from "../components/ui/button";
 import ExplorationResult from "../components/learning/ExplorationResult";
 import { useI18n } from "../i18n/I18nContext";
 import { submitExplorationQuiz } from "../services/explorationQuiz";
+import { useAuth } from "../context/AuthContext";
+import { saveModel1Assessment } from "../services/assessmentResultService";
 
 export default function ExplorationQuiz() {
   const { language } = useI18n();
+  const auth = useAuth();
   const navigate = useNavigate();
   const [displayLanguage, setDisplayLanguage] = useState<"en" | "my">(language);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -98,9 +101,18 @@ export default function ExplorationQuiz() {
     setError("");
 
     try {
-      const nextResult = await submitExplorationQuiz(buildExplorationSubmission(answers));
+      const submission = buildExplorationSubmission(answers);
+      const nextResult = await submitExplorationQuiz(submission);
       setResult(nextResult);
       setSubmitted(true);
+
+      if (auth.user) {
+        try {
+          await saveModel1Assessment(auth.user.uid, submission, nextResult);
+        } catch (saveError) {
+          console.error("Could not save Model 1 assessment result", saveError);
+        }
+      }
     } catch {
       setError(displayCopy.error);
     } finally {
@@ -135,7 +147,10 @@ export default function ExplorationQuiz() {
             result={result}
             language={displayLanguage}
           />
-          <Button type="button" onClick={() => navigate("/app/explore")}>
+          <Button
+            type="button"
+            onClick={() => navigate("/app/explore", { state: { model1Result: result } })}
+          >
             {displayCopy.returnToExplore}
           </Button>
         </div>

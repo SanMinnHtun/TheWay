@@ -12,15 +12,21 @@ import type { UserMode } from "../../types/profile";
 export default function CareerCard({
   career,
   mode,
-  featured = false
+  featured = false,
+  matchPercentage,
+  showScore = true,
+  roleLabel
 }: {
   career: Career;
   mode: UserMode;
   featured?: boolean;
+  matchPercentage?: number;
+  showScore?: boolean;
+  roleLabel?: string;
 }) {
   const { language, t } = useI18n();
   const counts = getCareerCounts(career);
-  const score = career.matchByMode[mode];
+  const score = matchPercentage ?? career.matchByMode[mode];
 
   return (
     <Card className={`learning-card career-catalog-card ${featured ? "career-catalog-card--featured" : ""}`}>
@@ -28,13 +34,15 @@ export default function CareerCard({
       <CardHeader className="relative gap-4">
         <div className="learning-card-topline">
           <Badge variant="outline">{localize(career.categoryLabel, language)}</Badge>
-          <div className="career-score" aria-label={`${score}% ${mode === "GOAL" ? t("careers.currentReadiness") : t("careers.match")}`}>
-            {featured ? <NumberTicker value={score} /> : score}%
-          </div>
+          {showScore ? (
+            <div className="career-score" aria-label={`${score}% ${mode === "GOAL" ? t("careers.currentReadiness") : t("careers.match")}`}>
+              {featured ? <NumberTicker value={score} /> : Math.round(score)}%
+            </div>
+          ) : null}
         </div>
         <div>
           {featured ? <p className="experience-eyebrow">{t("careers.featuredLabel")}</p> : null}
-          <CardTitle>{localize(career.name, language)}</CardTitle>
+          <CardTitle>{roleLabel ?? localize(career.name, language)}</CardTitle>
           <CardDescription className="mt-2">{localize(career.shortDescription, language)}</CardDescription>
         </div>
       </CardHeader>

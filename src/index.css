@@ -61,6 +61,35 @@ select {
   overflow: hidden;
 }
 
+.ambient-galaxy {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-galaxy img {
+  position: absolute;
+  top: 12%;
+  right: -8%;
+  width: clamp(300px, 62vw, 780px);
+  max-width: none;
+  aspect-ratio: 1;
+  object-fit: contain;
+  opacity: 0.12;
+  mix-blend-mode: screen;
+}
+
+.ambient-galaxy--profile {
+  z-index: 0;
+}
+
+.ambient-galaxy--profile img {
+  top: 18%;
+  right: -12%;
+}
+
 .landing-shell::before {
   content: "";
   position: absolute;
